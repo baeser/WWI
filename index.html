@@ -941,6 +941,126 @@
     font-size: 0.85rem;
   }
 
+  /* ===== ENLISTMENT WIDGET ===== */
+  .enlistment-widget {
+    background: #1a2a4a;
+    border-radius: 6px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    color: #eceae4;
+    font-family: 'Source Sans Pro', sans-serif;
+  }
+  .enlistment-widget h4 {
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.25rem;
+    color: #fff;
+  }
+  .enlistment-widget .enlistment-subtitle {
+    font-size: 0.85rem;
+    color: var(--gold);
+    font-style: italic;
+    margin-bottom: 1rem;
+  }
+  .enlistment-widget .enlistment-instructions {
+    font-size: 0.9rem;
+    color: #b8b4a8;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+  }
+  .enlistment-widget .enlistment-input-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 0.5rem;
+  }
+  .enlistment-widget input[type="number"] {
+    padding: 0.5rem 0.75rem;
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 1rem;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 4px;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    width: 180px;
+  }
+  .enlistment-widget input[type="number"]::placeholder { color: rgba(255,255,255,0.4); }
+  .enlistment-widget .enlist-btn {
+    padding: 0.5rem 1.5rem;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .enlistment-widget .enlist-btn:hover { background: var(--accent-light); }
+  .enlistment-widget .enlist-result {
+    display: none;
+    margin-top: 1rem;
+    padding: 1rem 1.25rem;
+    border-radius: 4px;
+    line-height: 1.6;
+    font-size: 0.95rem;
+  }
+  .enlistment-widget .enlist-result.active {
+    display: block;
+  }
+  .enlistment-widget .enlist-result.served {
+    background: rgba(183, 28, 28, 0.3);
+    border: 1px solid rgba(183, 28, 28, 0.6);
+  }
+  .enlistment-widget .enlist-result.too-young {
+    background: rgba(45, 80, 22, 0.3);
+    border: 1px solid rgba(45, 80, 22, 0.6);
+  }
+  .enlistment-widget .enlist-result .enlist-age {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0.25rem 0;
+  }
+  .enlistment-widget .enlist-result.served .enlist-age { color: #ff6b6b; }
+  .enlistment-widget .enlist-result.too-young .enlist-age { color: #81c784; }
+  .enlistment-widget .enlist-result .enlist-status {
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .enlistment-widget .enlist-result.served .enlist-status { color: #ff6b6b; }
+  .enlistment-widget .enlist-result.too-young .enlist-status { color: #81c784; }
+  .enlistment-widget .enlist-context {
+    font-size: 0.85rem;
+    color: #b8b4a8;
+    margin-top: 0.75rem;
+    line-height: 1.6;
+    font-style: italic;
+  }
+  .enlistment-widget .enlist-battles {
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+    color: #ddd;
+    line-height: 1.6;
+  }
+  .enlistment-widget .enlist-battles strong { color: #fff; }
+  .enlistment-widget .enlist-odds {
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    background: rgba(0,0,0,0.3);
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: #ddd;
+    line-height: 1.5;
+  }
+  .enlistment-widget .enlist-odds strong { color: var(--gold); }
+
   /* ===== RESPONSIVE ===== */
   @media (max-width: 700px) {
     #title-screen h1 { font-size: 2.2rem; }
@@ -1884,6 +2004,21 @@ epilogue: {
     </div>
 
     <div class="epilogue-section">
+      <h3>Would You Have Served?</h3>
+      <p>In 1914, there was no conscription in Britain. The army was made up of volunteers. Lord Kitchener's famous recruiting poster — <strong>"Your Country Needs YOU"</strong> — helped raise over 2.5 million volunteers by 1916, when conscription was finally introduced. Men between 18 and 41 were eligible to serve. Enter your birth year below to see what the war would have meant for you.</p>
+      <div class="enlistment-widget">
+        <h4>Enlistment Calculator</h4>
+        <div class="enlistment-subtitle">Would you have served in the Great War?</div>
+        <div class="enlistment-instructions">Enter a birth year between 1873 and 1900 to see your war experience.</div>
+        <div class="enlistment-input-row">
+          <input type="number" id="enlist-year" min="1873" max="1900" placeholder="Birth year (e.g. 1896)">
+          <button class="enlist-btn" onclick="checkEnlistment()">Find Out</button>
+        </div>
+        <div class="enlist-result" id="enlist-result"></div>
+      </div>
+    </div>
+
+    <div class="epilogue-section">
       <h3>The Question</h3>
       <p>The war that was supposed to end all wars didn't end anything. Twenty-one years later, an even deadlier conflict began — one directly caused by the failures of the peace that followed the first. The Great War killed ten million soldiers and left a continent in ruins, and the question it asks every generation is: <strong><em>Was it worth it? Could it have been prevented? And what do we owe the millions who died in the mud of Flanders and the chalk of the Somme for a few miles of ground that no one can remember the purpose of?</em></strong></p>
     </div>
@@ -2019,6 +2154,13 @@ function makeChoice(sceneId, choiceIndex) {
 
   if (choice.effect) choice.effect();
 
+  // Show field dispatch modal after scene 6 (The Somme)
+  if (sceneId === 'scene6') {
+    state._pendingChoice = choice;
+    showReportModal();
+    return;
+  }
+
   applyChoice(choice);
 }
 
@@ -2033,6 +2175,138 @@ function applyChoice(choice) {
     const promptEl = container.querySelector('.choice-prompt');
     if (promptEl) promptEl.style.display = 'none';
   }
+}
+
+function showReportModal() {
+  document.getElementById('report-overlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function submitReport() {
+  const name = document.getElementById('report-correspondent-name').value.trim();
+  if (!name) {
+    alert('You must enter your name to file this dispatch.');
+    document.getElementById('report-correspondent-name').focus();
+    return;
+  }
+
+  state.report = {
+    correspondentName: document.getElementById('report-correspondent-name').value.trim(),
+    pressCredential: document.getElementById('report-credential').value.trim(),
+    bombardmentAssessment: document.getElementById('report-bombardment').value.trim(),
+    casualtyReport: document.getElementById('report-casualties').value.trim(),
+    observations: document.getElementById('report-observations').value.trim(),
+    significance: document.getElementById('report-significance').value.trim()
+  };
+
+  document.getElementById('report-overlay').classList.remove('active');
+  document.body.style.overflow = '';
+
+  if (state._pendingChoice) {
+    applyChoice(state._pendingChoice);
+    state._pendingChoice = null;
+  }
+}
+
+// ============================================================
+// ENLISTMENT CALCULATOR
+// ============================================================
+function checkEnlistment() {
+  const yearInput = document.getElementById('enlist-year');
+  const year = parseInt(yearInput.value);
+  const resultEl = document.getElementById('enlist-result');
+
+  if (!year || year < 1873 || year > 1900) {
+    alert('Please enter a birth year between 1873 and 1900.');
+    yearInput.focus();
+    return;
+  }
+
+  const ageIn1914 = 1914 - year;
+  const ageIn1918 = 1918 - year;
+
+  // Too young to serve (under 18 even by 1918)
+  if (ageIn1918 < 18) {
+    resultEl.className = 'enlist-result active too-young';
+    resultEl.innerHTML = `
+      <div style="font-size:0.85rem;color:#b8b4a8;">Born: ${year}</div>
+      <div class="enlist-age">Age ${ageIn1914} in 1914</div>
+      <div class="enlist-status">Too Young to Serve</div>
+      <div class="enlist-context">You would have been too young to enlist, even by the war's end. But you would have grown up in a world shaped by the war — surrounded by wounded veterans, grieving families, and empty chairs at school where older boys once sat. The war would have defined your childhood even though you never fought in it.</div>
+    `;
+    return;
+  }
+
+  // Too old (over 41 in 1914)
+  if (ageIn1914 > 41) {
+    resultEl.className = 'enlist-result active too-young';
+    resultEl.innerHTML = `
+      <div style="font-size:0.85rem;color:#b8b4a8;">Born: ${year}</div>
+      <div class="enlist-age">Age ${ageIn1914} in 1914</div>
+      <div class="enlist-status">Above Military Age</div>
+      <div class="enlist-context">At ${ageIn1914}, you would have been above the standard enlistment age. But you would have watched younger men — perhaps your sons, brothers, or students — march away. And you would have waited for the casualty lists that arrived daily in every town in Britain.</div>
+    `;
+    return;
+  }
+
+  // Would have served
+  let battles = [];
+  let enlistYear = 1914;
+  let description = '';
+
+  if (ageIn1914 >= 18 && ageIn1914 <= 30) {
+    // Prime fighting age — likely volunteer in 1914 or early 1915
+    enlistYear = 1914;
+    if (ageIn1914 <= 22) {
+      battles = ['Ypres (1915)', 'The Somme (1916)', 'Passchendaele (1917)', 'The Hundred Days (1918)'];
+      description = `At ${ageIn1914}, you were prime enlistment age. You would likely have volunteered in the first wave of patriotic enthusiasm in August 1914, perhaps joining a Pals Battalion with your friends. You would have served for most or all of the war — surviving Ypres, the Somme, and Passchendaele would have required extraordinary luck.`;
+    } else {
+      battles = ['Ypres (1915)', 'Verdun/Somme (1916)', 'Passchendaele (1917)'];
+      description = `At ${ageIn1914}, you were experienced enough to hold a leadership role. You might have been a sergeant or junior officer — the men who led platoons over the top. Junior officers had the highest casualty rate of any rank: their life expectancy in the trenches was measured in weeks.`;
+    }
+  } else if (ageIn1914 >= 31) {
+    // Older — likely conscripted in 1916
+    enlistYear = 1916;
+    battles = ['The Somme (1916)', 'Passchendaele (1917)', 'The Hundred Days (1918)'];
+    description = `At ${ageIn1914} in 1914, you might not have volunteered immediately. But when conscription was introduced in 1916, you would have been called up. You would have arrived at the front in time for the Somme — and the worst fighting of the war.`;
+  } else {
+    // 15-17 in 1914 — underage volunteer or later conscript
+    const enlistAge = 18;
+    enlistYear = year + enlistAge;
+    if (enlistYear <= 1916) {
+      battles = ['The Somme (1916)', 'Passchendaele (1917)', 'The Hundred Days (1918)'];
+    } else {
+      battles = ['Passchendaele (1917)', 'The Hundred Days (1918)'];
+    }
+    description = `At ${ageIn1914} in 1914, you were too young to enlist legally — but many boys lied about their age to join up. The youngest known British soldier was 12. If you waited until you were 18, you would have joined in ${enlistYear} and arrived at the front in time for ${battles[0]}.`;
+  }
+
+  // Casualty statistics
+  // Approximately 1 in 8 British soldiers who served were killed (11.5%)
+  // Approximately 1 in 3 were killed or wounded (36%)
+  // Officers had ~17% killed rate
+  const roll = Math.floor(Math.random() * 100) + 1;
+  let fate = '';
+  if (roll <= 12) {
+    fate = `<strong style="color:#ff6b6b;">Killed in action.</strong> Statistically, approximately 1 in 8 British soldiers who served did not come home. Of the 6 million British men who served, over 700,000 were killed.`;
+  } else if (roll <= 36) {
+    fate = `<strong style="color:#ffb74d;">Wounded.</strong> You survived, but carried the war in your body for the rest of your life. Over 1.6 million British soldiers were wounded — many permanently disabled. Shell shock, lost limbs, blindness, and disfigurement were common.`;
+  } else {
+    fate = `<strong style="color:#81c784;">Survived physically.</strong> You came home in one piece — but the war came home with you. Nightmares, flashbacks, and the memory of friends who didn't make it. Many survivors never spoke about what they had seen.`;
+  }
+
+  resultEl.className = 'enlist-result active served';
+  resultEl.innerHTML = `
+    <div style="font-size:0.85rem;color:#b8b4a8;">Born: ${year}</div>
+    <div class="enlist-age">Age ${ageIn1914} in 1914</div>
+    <div class="enlist-status">Called to Serve</div>
+    <div class="enlist-context">${description}</div>
+    <div class="enlist-battles"><strong>Battles you would have experienced:</strong> ${battles.join(' · ')}</div>
+    <div class="enlist-odds">
+      <strong>Your fate (based on actual British casualty statistics):</strong><br>${fate}
+    </div>
+    <div class="enlist-context" style="margin-top:0.5rem;">Of every 20 men from a typical British battalion who went to France, only 1 would serve the entire war without being killed, wounded, or taken prisoner. The average soldier's war was measured not in years but in the number of times he went "over the top" before his luck ran out.</div>
+  `;
 }
 
 function goBack() {
@@ -2205,6 +2479,17 @@ function savePDF() {
 <h2>Reporting Choices</h2>
 <table>${choicesHtml}</table>
 
+${state.report ? `
+<h2>Field Dispatch — The Somme</h2>
+<div style="font-size:10pt;line-height:1.6;padding:12px;border:1px solid #ddd;background:#faf8f3;margin-bottom:16px">
+  <p><strong>Correspondent:</strong> ${state.report.correspondentName} &nbsp;&nbsp; <strong>Credential:</strong> ${state.report.pressCredential || 'N/A'}</p>
+  <p><strong>Bombardment Assessment:</strong> ${state.report.bombardmentAssessment || 'N/A'}</p>
+  <p><strong>Casualty Report:</strong> ${state.report.casualtyReport || 'N/A'}</p>
+  ${state.report.observations ? `<p><strong>Observations:</strong> ${state.report.observations}</p>` : ''}
+  ${state.report.significance ? `<p><strong>Significance:</strong> ${state.report.significance}</p>` : ''}
+</div>
+` : ''}
+
 <h2>Reflection Questions</h2>
 <div class="question">
   <div class="q-label">Question 1</div>
@@ -2288,6 +2573,56 @@ function closeWarGuiltModal() {
   document.body.style.overflow = '';
 }
 </script>
+
+<!-- Field Dispatch Modal — The Somme -->
+<div class="report-overlay" id="report-overlay">
+  <div class="report-modal">
+    <h2>Field Dispatch</h2>
+    <div class="report-subtitle">War Correspondent — British Expeditionary Force</div>
+    <div class="report-classification">PRIORITY FILING — BATTLE OF THE SOMME, JULY 1, 1916</div>
+
+    <div class="report-intro">
+      You have just witnessed the worst day in British military history. As a credentialed war correspondent attached to the BEF, you are filing an urgent dispatch from behind the lines at the Somme. Complete this form carefully — your dispatch will be transmitted to your newspaper's editorial desk and may shape how millions of people at home understand what just happened.
+      <br><br><em style="font-size:0.85em;color:#888;">Note: This is an educational simulation. However, the decisions journalists made about how to report the Somme had enormous consequences for public understanding of the war. Military censors controlled what correspondents could publish — many of the truths about July 1 did not reach the British public for weeks or months.</em>
+    </div>
+
+    <div class="report-field">
+      <label for="report-correspondent-name">Correspondent Name</label>
+      <input type="text" id="report-correspondent-name" placeholder="Your full name">
+    </div>
+
+    <div class="report-field">
+      <label for="report-credential">Press Credential Number</label>
+      <input type="text" id="report-credential" placeholder="Assign yourself a credential number">
+    </div>
+
+    <div class="report-field">
+      <label for="report-bombardment">The seven-day bombardment was supposed to destroy the German defenses. Based on what you witnessed today, did it work?</label>
+      <textarea id="report-bombardment" placeholder="Describe what you observed — were the German positions destroyed? Were the wire obstacles cut? What happened when the infantry advanced?"></textarea>
+    </div>
+
+    <div class="report-field">
+      <label for="report-casualties">Describe the casualties you have witnessed or been informed of today.</label>
+      <textarea id="report-casualties" placeholder="What have you seen at the field hospitals and casualty clearing stations? What are soldiers returning from the front telling you about losses?"></textarea>
+    </div>
+
+    <div class="report-field">
+      <label for="report-observations">What are the soldiers and junior officers telling you about what happened today?</label>
+      <textarea id="report-observations" placeholder="Include details from interviews with survivors, stretcher-bearers, medical staff, and any officers willing to speak..."></textarea>
+    </div>
+
+    <div class="report-field">
+      <label for="report-significance">What is the significance of today's events for the course of the war and for Britain?</label>
+      <textarea id="report-significance" placeholder="What does today's battle mean? What should the British public understand about what happened on the Somme?"></textarea>
+    </div>
+
+    <div class="legal-text">
+      I certify that this dispatch is based on my best reporting and judgment as a credentialed correspondent. I understand that this filing will be reviewed by military censors before publication. I accept that certain operational details may be redacted for security purposes, but I affirm that the substance of this report is truthful and accurate.
+    </div>
+
+    <button class="report-submit-btn" onclick="submitReport()">File Dispatch</button>
+  </div>
+</div>
 
 <!-- Wilfred Owen "Dulce et Decorum Est" Modal -->
 <div class="evidence-overlay" id="owen-overlay" onclick="if(event.target===this)closeOwenModal()">
