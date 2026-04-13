@@ -1,0 +1,2157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Great War: 1914–1918</title>
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+Pro:wght@400;600;700&display=swap');
+
+  :root {
+    --bg: #e8e4db;
+    --bg-dark: #d4cfc3;
+    --text: #1a1a1a;
+    --text-light: #4a4a4a;
+    --accent: #6b3a2a;
+    --accent-light: #8b4a3a;
+    --blue: #1a2a4a;
+    --gold: #b8960c;
+    --card-bg: #f8f6f0;
+    --shadow: rgba(0, 0, 0, 0.15);
+    --mud: #5c4a3a;
+    --blood: #8b1a1a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Libre Baskerville', Georgia, serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.8;
+  }
+
+  /* ===== TITLE SCREEN ===== */
+  #title-screen {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    background: linear-gradient(180deg, #0a0a0a 0%, #1a1510 40%, #2a2018 100%);
+    color: #e8e4db;
+  }
+
+  #title-screen h1 {
+    font-size: 3.5rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+  }
+
+  #title-screen .subtitle {
+    font-size: 1.3rem;
+    font-style: italic;
+    color: var(--gold);
+    margin-bottom: 2rem;
+  }
+
+  #title-screen .intro-text {
+    max-width: 650px;
+    font-size: 1rem;
+    line-height: 1.9;
+    color: #b8b4a8;
+    margin-bottom: 2.5rem;
+  }
+
+  #title-screen .intro-text em {
+    color: var(--gold);
+    font-style: italic;
+  }
+
+  .btn-start {
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 1rem 3rem;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .btn-start:hover { background: var(--accent-light); }
+
+  .title-music {
+    margin: 1.2rem auto 0.5rem;
+    max-width: 660px;
+    width: 90%;
+  }
+
+  /* ===== MAP PANEL ===== */
+  #map-panel {
+    position: relative;
+    z-index: 100;
+    display: none;
+    background: #1a1510;
+    border-bottom: 3px solid var(--accent);
+    overflow: hidden;
+  }
+
+  #map-panel.active { display: block; }
+
+  .map-wrapper {
+    position: relative;
+    max-width: 1000px;
+    margin: 0 auto;
+    height: 500px;
+    overflow: hidden;
+    background: #1a1510;
+    transition: height 0.4s ease;
+  }
+
+  #mapbox-container {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Mapbox marker styles */
+  .mapbox-marker {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: rgba(60, 50, 40, 0.6);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: background 0.4s ease, border 0.4s ease, box-shadow 0.4s ease;
+    position: relative;
+  }
+
+  .mapbox-marker.visited {
+    background: var(--blue);
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 0 0 6px rgba(26, 42, 74, 0.5);
+  }
+
+  .mapbox-marker.current {
+    background: var(--accent);
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 12px rgba(107, 58, 42, 0.8), 0 0 24px rgba(107, 58, 42, 0.4);
+    animation: markerPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes markerPulse {
+    0%, 100% { box-shadow: 0 0 12px rgba(107, 58, 42, 0.8), 0 0 24px rgba(107, 58, 42, 0.4); }
+    50% { box-shadow: 0 0 20px rgba(107, 58, 42, 1), 0 0 40px rgba(107, 58, 42, 0.6); }
+  }
+
+  .mapbox-marker-label {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 4px;
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.4);
+    white-space: nowrap;
+    text-align: center;
+    pointer-events: none;
+    transition: color 0.4s;
+  }
+
+  .mapbox-marker.visited .mapbox-marker-label,
+  .mapbox-marker.current .mapbox-marker-label {
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  /* Danger markers on Mapbox */
+  .mapbox-danger-marker {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    opacity: 0;
+    transition: opacity 0.6s;
+    pointer-events: none;
+  }
+
+  .mapbox-danger-marker.visible {
+    opacity: 1;
+    animation: dangerPulse 1.5s ease-in-out infinite;
+  }
+
+  .mapbox-danger-marker.danger-explosion {
+    background: radial-gradient(circle, rgba(255, 60, 0, 0.9), rgba(183, 28, 28, 0.7));
+    box-shadow: 0 0 16px rgba(255, 60, 0, 0.6);
+  }
+
+  .mapbox-danger-marker.danger-gas {
+    background: radial-gradient(circle, rgba(180, 200, 0, 0.9), rgba(120, 140, 0, 0.7));
+    box-shadow: 0 0 16px rgba(180, 200, 0, 0.6);
+  }
+
+  .mapbox-danger-marker.danger-warning {
+    background: radial-gradient(circle, rgba(255, 180, 0, 0.9), rgba(200, 120, 0, 0.7));
+    box-shadow: 0 0 16px rgba(255, 180, 0, 0.6);
+  }
+
+  @keyframes dangerPulse {
+    0%, 100% { box-shadow: 0 0 12px rgba(255, 60, 0, 0.6); }
+    50% { box-shadow: 0 0 24px rgba(255, 60, 0, 1), 0 0 40px rgba(255, 60, 0, 0.5); }
+  }
+
+  /* Map legend */
+  .map-legend {
+    position: absolute;
+    bottom: 8px;
+    left: 12px;
+    display: flex;
+    gap: 16px;
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.7);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: rgba(0,0,0,0.6);
+    padding: 4px 10px;
+    border-radius: 3px;
+    z-index: 10;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .legend-dot.brown { background: var(--accent); }
+  .legend-dot.blue { background: var(--blue); }
+
+  /* Map location callout */
+  .map-callout {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    font-family: 'Source Sans Pro', sans-serif;
+    text-align: right;
+    z-index: 10;
+  }
+
+  .callout-location {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #d4a574;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+  }
+
+  .callout-date {
+    font-size: 0.7rem;
+    color: rgba(255,255,255,0.7);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+  }
+
+  /* ===== MAIN CONTENT ===== */
+  #game-container {
+    max-width: 750px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem 4rem;
+    display: none;
+  }
+
+  #game-container.active { display: block; }
+
+  .scene-location {
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .scene-date {
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 0.8rem;
+    color: var(--text-light);
+    margin-bottom: 1.5rem;
+  }
+
+  .scene-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 1.5rem;
+    line-height: 1.3;
+  }
+
+  .scene-narrative { margin-bottom: 2rem; }
+
+  .scene-photo {
+    width: 100%;
+    margin: 1.5rem 0;
+    border: 3px solid var(--bg-dark);
+    box-shadow: 0 2px 12px var(--shadow);
+  }
+
+  .scene-photo img {
+    width: 100%;
+    display: block;
+    filter: grayscale(40%) sepia(15%);
+  }
+
+  .scene-photo figcaption {
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 0.75rem;
+    color: var(--text-light);
+    padding: 0.5rem 0.75rem;
+    background: var(--bg-dark);
+    line-height: 1.4;
+    font-style: italic;
+  }
+
+  .scene-narrative p {
+    margin-bottom: 1.2rem;
+    font-size: 1.05rem;
+  }
+
+  .scene-narrative .historical-note {
+    background: var(--bg-dark);
+    border-left: 3px solid var(--gold);
+    padding: 1rem 1.25rem;
+    margin: 1.5rem 0;
+    font-size: 0.95rem;
+    font-style: italic;
+    color: var(--text-light);
+  }
+
+  .scene-narrative .vocab-term {
+    border-bottom: 1px dashed var(--gold);
+    cursor: help;
+    position: relative;
+  }
+
+  .scene-narrative .vocab-term:hover::after {
+    content: attr(data-def);
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    background: var(--blue);
+    color: #fff;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    font-style: normal;
+    border-radius: 4px;
+    width: 280px;
+    z-index: 10;
+    line-height: 1.5;
+  }
+
+  .scene-narrative .poetry-block {
+    background: var(--card-bg);
+    border-left: 3px solid var(--mud);
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0;
+    font-style: italic;
+    line-height: 2;
+    color: var(--text);
+  }
+
+  .scene-narrative .poetry-block .poetry-attribution {
+    margin-top: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--text-light);
+    font-style: normal;
+    font-weight: 600;
+  }
+
+  .choice-prompt {
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    color: var(--blue);
+  }
+
+  .choices {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .choice-btn {
+    font-family: 'Source Sans Pro', sans-serif;
+    text-align: left;
+    padding: 1.1rem 1.5rem;
+    background: var(--card-bg);
+    border: 2px solid var(--bg-dark);
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--text);
+    transition: all 0.2s;
+  }
+
+  .choice-btn:hover {
+    border-color: var(--accent);
+    background: #fff;
+  }
+
+  .choice-btn .choice-label {
+    font-weight: 700;
+    color: var(--accent);
+    margin-right: 0.5rem;
+  }
+
+  .consequence {
+    background: var(--card-bg);
+    border-left: 3px solid var(--accent);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2rem;
+    font-size: 1rem;
+    line-height: 1.8;
+  }
+
+  .consequence p { margin-bottom: 0.8rem; }
+  .consequence p:last-child { margin-bottom: 0; }
+
+  .continue-btn {
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 0.85rem 2.5rem;
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    transition: background 0.2s;
+  }
+
+  .continue-btn:hover { background: #2a3a5e; }
+
+  .nav-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .back-btn {
+    display: inline-block;
+    background: none;
+    border: 1px solid #999;
+    color: #666;
+    padding: 0.4rem 1rem;
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 0.85rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .back-btn:hover {
+    background: #eee;
+    color: #333;
+    border-color: #666;
+  }
+
+  .epilogue-section { margin-bottom: 2rem; }
+
+  .epilogue-section h3 {
+    font-size: 1.15rem;
+    margin-bottom: 0.75rem;
+    color: var(--blue);
+  }
+
+  .epilogue-section ul { padding-left: 1.5rem; }
+
+  .epilogue-section li {
+    margin-bottom: 0.6rem;
+    font-size: 1rem;
+  }
+
+  .restart-btn {
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 0.85rem 2.5rem;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 1rem;
+    transition: background 0.2s;
+  }
+
+  .restart-btn:hover { background: var(--accent-light); }
+
+  /* ===== REFLECTION FORM ===== */
+  .reflection-section {
+    margin-top: 3rem;
+    padding-top: 2.5rem;
+    border-top: 2px solid var(--bg-dark);
+  }
+
+  .reflection-section h2 {
+    font-size: 1.5rem;
+    color: var(--blue);
+    margin-bottom: 0.5rem;
+  }
+
+  .reflection-intro {
+    font-size: 0.95rem;
+    color: var(--text-light);
+    margin-bottom: 2rem;
+    font-style: italic;
+  }
+
+  .reflection-field { margin-bottom: 2rem; }
+
+  .reflection-field label {
+    display: block;
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+  }
+
+  .reflection-field textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 0.85rem 1rem;
+    font-family: 'Libre Baskerville', Georgia, serif;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: var(--text);
+    background: var(--card-bg);
+    border: 2px solid var(--bg-dark);
+    resize: vertical;
+    transition: border-color 0.2s;
+  }
+
+  .reflection-field textarea:focus {
+    outline: none;
+    border-color: var(--blue);
+  }
+
+  .reflection-field textarea::placeholder {
+    color: #a09888;
+    font-style: italic;
+  }
+
+  .name-field { margin-bottom: 2rem; }
+
+  .name-field label {
+    display: block;
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.4rem;
+  }
+
+  .name-field input {
+    width: 100%;
+    max-width: 400px;
+    padding: 0.7rem 1rem;
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 1rem;
+    color: var(--text);
+    background: var(--card-bg);
+    border: 2px solid var(--bg-dark);
+    transition: border-color 0.2s;
+  }
+
+  .name-field input:focus {
+    outline: none;
+    border-color: var(--blue);
+  }
+
+  .name-field input::placeholder { color: #a09888; }
+
+  .reflection-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+  }
+
+  .save-pdf-btn {
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 0.85rem 2.5rem;
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    transition: background 0.2s;
+  }
+
+  .save-pdf-btn:hover { background: #2a3a5e; }
+
+  .save-pdf-btn:disabled {
+    background: #999;
+    cursor: not-allowed;
+  }
+
+  .pdf-note {
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 0.75rem;
+    color: var(--text-light);
+    margin-top: 0.75rem;
+  }
+
+  .fade-in { animation: fadeIn 0.6s ease forwards; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===== FIELD DISPATCH MODAL ===== */
+  .report-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 1000;
+    overflow-y: auto;
+    padding: 2rem 1rem;
+  }
+  .report-overlay.active { display: flex; justify-content: center; align-items: flex-start; }
+  .report-modal {
+    background: #f5f3ed;
+    background-image: linear-gradient(to bottom, #f5f3ed, #ebe8de);
+    max-width: 650px;
+    width: 100%;
+    border-radius: 4px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+    padding: 2.5rem 2rem;
+    font-family: 'Source Sans Pro', sans-serif;
+    color: #1a1a1a;
+    position: relative;
+  }
+  .report-modal h2 {
+    font-family: 'Source Sans Pro', sans-serif;
+    text-align: center;
+    font-size: 1.4rem;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 700;
+  }
+  .report-modal .report-subtitle {
+    text-align: center;
+    font-style: italic;
+    color: var(--text-light);
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+  }
+  .report-modal .report-classification {
+    text-align: center;
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 0.85rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    padding: 0.3rem;
+    border: 2px solid var(--accent);
+    display: inline-block;
+    width: 100%;
+  }
+  .report-modal .report-intro {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    color: #555;
+    border-left: 3px solid var(--accent);
+    padding-left: 1rem;
+  }
+  .report-modal label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.3rem;
+    color: var(--blue);
+  }
+  .report-modal input[type="text"],
+  .report-modal textarea {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+    background: #fff;
+  }
+  .report-modal textarea { min-height: 70px; resize: vertical; }
+  .report-modal .report-field { margin-bottom: 1.2rem; }
+  .report-modal .legal-text {
+    font-size: 0.8rem;
+    font-style: italic;
+    color: #777;
+    line-height: 1.5;
+    margin: 1.5rem 0;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    background: #faf8f3;
+  }
+  .report-submit-btn {
+    display: block;
+    width: 100%;
+    padding: 0.9rem;
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-top: 1.5rem;
+  }
+  .report-submit-btn:hover { background: #2a3a5e; }
+
+  /* ===== BROADCAST MODAL ===== */
+  .broadcast-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 1100;
+    padding: 1rem;
+  }
+  .broadcast-overlay.active {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+  .broadcast-modal {
+    max-width: 700px;
+    width: 100%;
+    text-align: center;
+  }
+  .broadcast-modal h2 {
+    font-family: 'Libre Baskerville', serif;
+    color: #fff;
+    font-size: 1.4rem;
+    margin-bottom: 0.3rem;
+  }
+  .broadcast-modal .broadcast-dateline {
+    color: var(--gold);
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  .broadcast-modal p.broadcast-subtitle {
+    color: #bbb;
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 0.95rem;
+    margin-bottom: 1.2rem;
+    font-style: italic;
+    line-height: 1.6;
+  }
+  .broadcast-modal .broadcast-frame {
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.3%;
+    margin: 0 auto;
+    background: #000;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .broadcast-modal .broadcast-frame iframe {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+  .broadcast-close-btn {
+    display: inline-block;
+    margin-top: 1.2rem;
+    padding: 0.7rem 2rem;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .broadcast-close-btn:hover { background: var(--accent-light); }
+
+  /* ===== EVIDENCE / DOCUMENT MODAL ===== */
+  .evidence-link {
+    color: var(--accent);
+    text-decoration: underline;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  .evidence-link:hover { color: var(--accent-light); }
+  .evidence-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 1100;
+    overflow-y: auto;
+    padding: 2rem 1rem;
+  }
+  .evidence-overlay.active {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .evidence-modal {
+    background: #f5f3ed;
+    background-image: linear-gradient(to bottom, #f5f3ed, #ebe8de);
+    max-width: 850px;
+    width: 100%;
+    border-radius: 4px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+    padding: 2rem;
+    font-family: 'Source Sans Pro', sans-serif;
+    color: #1a1a1a;
+    margin: 1rem auto;
+  }
+  .evidence-modal h2 {
+    font-family: 'Libre Baskerville', serif;
+    text-align: center;
+    font-size: 1.3rem;
+    margin-bottom: 0.25rem;
+    color: var(--accent);
+  }
+  .evidence-modal .evidence-subtitle {
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-light);
+    font-style: italic;
+    margin-bottom: 1rem;
+  }
+  .evidence-modal .pdf-frame {
+    width: 100%;
+    height: 600px;
+    border: 2px solid var(--bg-dark);
+    border-radius: 4px;
+    background: #fff;
+  }
+  .evidence-modal .pdf-note {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    margin-top: 0.75rem;
+    line-height: 1.5;
+    font-style: italic;
+  }
+  .evidence-close-btn {
+    display: block;
+    margin: 1.5rem auto 0;
+    padding: 0.7rem 2.5rem;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .evidence-close-btn:hover { background: var(--accent-light); }
+
+  /* ===== CASUALTY COUNTER ===== */
+  .casualty-counter {
+    background: #1a1a1a;
+    color: #ccc;
+    padding: 0.6rem 1.2rem;
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 0.82rem;
+    display: none;
+    justify-content: center;
+    gap: 2rem;
+    border-bottom: 1px solid #333;
+    letter-spacing: 0.02em;
+  }
+  .casualty-counter.active { display: flex; }
+  .casualty-counter .counter-group {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .casualty-counter .counter-label {
+    color: #888;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+  }
+  .casualty-counter .counter-value {
+    color: #e8e8e8;
+    font-weight: 700;
+    font-size: 0.9rem;
+    font-variant-numeric: tabular-nums;
+    transition: color 0.3s;
+  }
+  .casualty-counter .counter-value.rising {
+    color: #ff6b6b;
+  }
+  .casualty-counter .counter-year {
+    color: var(--gold);
+    font-weight: 700;
+    font-size: 0.85rem;
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 700px) {
+    #title-screen h1 { font-size: 2.2rem; }
+    #title-screen .subtitle { font-size: 1rem; }
+    .map-wrapper { height: 320px; }
+    .map-callout { display: none; }
+    .map-legend { display: none; }
+    #game-container { padding: 1.5rem 1rem 3rem; }
+    .scene-title { font-size: 1.4rem; }
+    .casualty-counter { gap: 0.8rem; flex-wrap: wrap; padding: 0.5rem 0.8rem; font-size: 0.75rem; }
+    .casualty-counter .counter-value { font-size: 0.8rem; }
+    .casualty-counter .counter-label { font-size: 0.6rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== TITLE SCREEN ===== -->
+<div id="title-screen">
+  <h1>The Great War</h1>
+  <div class="subtitle">1914 – 1918</div>
+  <div class="intro-text">
+    They called it "the war to end all wars." It was supposed to be over by Christmas. Instead, it lasted four years, killed twenty million people, and destroyed an entire generation. It redrew the map of the world, toppled four empires, and planted the seeds of an even deadlier war twenty years later.
+    <br><br>
+    In this simulation, you are a <em>British war correspondent</em> covering the conflict from its first shot to its final silence. You will witness the key battles, confront the decisions that sent millions to their deaths, and face the questions that soldiers in the trenches asked every day: <em>What are we fighting for? And is it worth the cost?</em>
+    <br><br>
+    The people in this story were real. The battles happened. The mud, the wire, and the graves are still there.
+  </div>
+  <div class="title-music">
+    <iframe id="apple-music-player" allow="autoplay *; encrypted-media *;" frameborder="0" height="150" style="width:100%;max-width:660px;overflow:hidden;background:transparent;border-radius:10px;" sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation" src="https://embed.music.apple.com/us/album/keep-the-home-fires-burning-till-the-boys-come-home/1452702825?i=1452702833"></iframe>
+  </div>
+  <button class="btn-start" onclick="startGame()">Begin Assignment</button>
+</div>
+
+<!-- ===== MAP PANEL ===== -->
+<div id="map-panel">
+  <div class="map-wrapper">
+    <div id="mapbox-container"></div>
+
+    <!-- Map callout -->
+    <div class="map-callout">
+      <div class="callout-location" id="callout-location"></div>
+      <div class="callout-date" id="callout-date"></div>
+    </div>
+
+    <!-- Legend -->
+    <div class="map-legend">
+      <div class="legend-item">
+        <div class="legend-dot brown"></div>
+        <span>Current location</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot blue"></div>
+        <span>Reported from</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CASUALTY COUNTER ===== -->
+<div class="casualty-counter" id="casualty-counter">
+  <div class="counter-group">
+    <span class="counter-label">Year</span>
+    <span class="counter-year" id="counter-year">1914</span>
+  </div>
+  <div class="counter-group">
+    <span class="counter-label">Allied Dead</span>
+    <span class="counter-value" id="counter-allied-dead">0</span>
+  </div>
+  <div class="counter-group">
+    <span class="counter-label">Central Powers Dead</span>
+    <span class="counter-value" id="counter-central-dead">0</span>
+  </div>
+  <div class="counter-group">
+    <span class="counter-label">Total Dead</span>
+    <span class="counter-value" id="counter-total-dead">0</span>
+  </div>
+</div>
+
+<!-- ===== GAME CONTENT ===== -->
+<div id="game-container"></div>
+
+<script>
+// ============================================================
+// GAME STATE
+// ============================================================
+const state = {
+  currentScene: null,
+  decisions: [],
+  visitedStops: [],
+  sceneHistory: [],
+  forwardHistory: [],
+  reachedEpilogue: false,
+  report: null,
+  _pendingChoice: null
+};
+
+// ============================================================
+// CASUALTY COUNTER DATA (cumulative by scene)
+// Sources: Commonwealth War Graves Commission, various historical estimates
+// ============================================================
+const casualtyData = {
+  scene1:   { year: '1914',      alliedDead: '0',           centralDead: '0',           totalDead: '0' },
+  scene2:   { year: '1914',      alliedDead: '0',           centralDead: '0',           totalDead: '0' },
+  scene3:   { year: '1914',      alliedDead: '~500,000',    centralDead: '~450,000',    totalDead: '~950,000' },
+  scene4:   { year: '1914\u201315', alliedDead: '~1,000,000', centralDead: '~800,000',  totalDead: '~1,800,000' },
+  scene5:   { year: '1916',      alliedDead: '~2,000,000',  centralDead: '~1,600,000',  totalDead: '~3,600,000' },
+  scene6:   { year: '1916',      alliedDead: '~3,200,000',  centralDead: '~2,500,000',  totalDead: '~5,700,000' },
+  scene7:   { year: '1917',      alliedDead: '~4,000,000',  centralDead: '~3,200,000',  totalDead: '~7,200,000' },
+  scene8:   { year: '1917',      alliedDead: '~4,800,000',  centralDead: '~3,800,000',  totalDead: '~8,600,000' },
+  scene9:   { year: '1918',      alliedDead: '~5,500,000',  centralDead: '~4,300,000',  totalDead: '~9,800,000' },
+  scene10:  { year: '1918',      alliedDead: '~5,700,000',  centralDead: '~4,400,000',  totalDead: '~10,000,000' },
+  epilogue: { year: '1918',      alliedDead: '~5,700,000',  centralDead: '~4,400,000',  totalDead: '~10,000,000' }
+};
+
+function updateCasualtyCounter(sceneId) {
+  const counter = document.getElementById('casualty-counter');
+  const data = casualtyData[sceneId];
+  if (!data) return;
+
+  counter.classList.add('active');
+
+  const yearEl = document.getElementById('counter-year');
+  const alliedEl = document.getElementById('counter-allied-dead');
+  const centralEl = document.getElementById('counter-central-dead');
+  const totalEl = document.getElementById('counter-total-dead');
+
+  const fields = [
+    { el: alliedEl, val: data.alliedDead },
+    { el: centralEl, val: data.centralDead },
+    { el: totalEl, val: data.totalDead }
+  ];
+
+  fields.forEach(({ el, val }) => {
+    if (el.textContent !== val) {
+      el.classList.add('rising');
+      setTimeout(() => el.classList.remove('rising'), 1200);
+    }
+  });
+
+  yearEl.textContent = data.year;
+  alliedEl.textContent = data.alliedDead;
+  centralEl.textContent = data.centralDead;
+  totalEl.textContent = data.totalDead;
+}
+
+// ============================================================
+// MAP CONFIGURATION
+// ============================================================
+const stopOrder = ['sarajevo', 'brussels', 'marne', 'ypres', 'verdun', 'somme', 'washington', 'passchendaele', 'amiens', 'compiegne'];
+
+const mapLocations = {
+  sarajevo:       { lng: 18.4131, lat: 43.8563, label: "Sarajevo" },
+  brussels:       { lng: 4.3517, lat: 50.8503, label: "Brussels" },
+  marne:          { lng: 3.5, lat: 48.95, label: "River Marne" },
+  ypres:          { lng: 2.8872, lat: 50.8514, label: "Ypres" },
+  verdun:         { lng: 5.3833, lat: 49.1600, label: "Verdun" },
+  somme:          { lng: 2.7, lat: 49.95, label: "The Somme" },
+  washington:     { lng: -77.0091, lat: 38.8976, label: "Washington, D.C." },
+  passchendaele:  { lng: 2.9833, lat: 50.8833, label: "Passchendaele" },
+  amiens:         { lng: 2.2958, lat: 49.8942, label: "Amiens" },
+  compiegne:      { lng: 2.8263, lat: 49.4178, label: "Compi\u00e8gne" }
+};
+
+// Western Front line (approximate)
+const westernFrontRoute = [
+  [2.55, 51.05],
+  [2.88, 50.85],
+  [3.00, 50.40],
+  [3.10, 49.95],
+  [3.50, 49.50],
+  [5.00, 49.20],
+  [5.38, 49.16],
+  [6.20, 48.80],
+  [7.00, 48.20],
+  [7.35, 47.60]
+];
+
+const dangerTriggers = {
+  ypres:    { lng: 2.8872, lat: 50.8514, type: 'danger-gas', icon: '\u2620' },
+  verdun:   { lng: 5.3833, lat: 49.1600, type: 'danger-explosion', icon: '\u2716' },
+  somme:    { lng: 2.7, lat: 49.95, type: 'danger-explosion', icon: '\u2716' }
+};
+
+// Mapbox state
+let mapboxMap = null;
+let mapboxMarkers = {};
+let mapboxDangerMarkers = {};
+let mapboxInitialized = false;
+
+function initMapbox() {
+  if (mapboxInitialized) return;
+  mapboxInitialized = true;
+
+  mapboxgl.accessToken = 'pk.eyJ1IjoiYmFlc2VyIiwiYSI6ImNtbjh5a3hwaTAzMzkyd3ExMXF2ZWlwdWYifQ.lm_CGFr5rvTYNKb3_aG_Xg';
+
+  mapboxMap = new mapboxgl.Map({
+    container: 'mapbox-container',
+    style: 'mapbox://styles/mapbox/dark-v11',
+    center: [4.0, 49.0],
+    zoom: 5,
+    scrollZoom: false,
+    attributionControl: false
+  });
+
+  mapboxMap.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-right');
+  mapboxMap.on('click', () => { mapboxMap.scrollZoom.enable(); });
+
+  requestAnimationFrame(() => { mapboxMap.resize(); });
+
+  mapboxMap.on('style.load', () => {
+    // Western Front line source (hidden initially)
+    mapboxMap.addSource('western-front', {
+      type: 'geojson',
+      data: {
+        type: 'Feature',
+        geometry: { type: 'LineString', coordinates: [] }
+      }
+    });
+
+    mapboxMap.addLayer({
+      id: 'western-front-line',
+      type: 'line',
+      source: 'western-front',
+      paint: {
+        'line-color': '#b8960c',
+        'line-width': 3,
+        'line-dasharray': [2, 1.5],
+        'line-opacity': 0.8
+      }
+    });
+
+    // Add location markers
+    Object.entries(mapLocations).forEach(([key, loc]) => {
+      const el = document.createElement('div');
+      el.className = 'mapbox-marker';
+      el.setAttribute('data-city', key);
+
+      const label = document.createElement('div');
+      label.className = 'mapbox-marker-label';
+      label.textContent = loc.label;
+      el.appendChild(label);
+
+      const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
+        .setLngLat([loc.lng, loc.lat])
+        .addTo(mapboxMap);
+
+      mapboxMarkers[key] = { marker, element: el };
+    });
+
+    // Create danger markers (hidden initially)
+    Object.entries(dangerTriggers).forEach(([key, info]) => {
+      const el = document.createElement('div');
+      el.className = `mapbox-danger-marker ${info.type}`;
+      el.textContent = info.icon;
+
+      const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
+        .setLngLat([info.lng, info.lat])
+        .addTo(mapboxMap);
+
+      mapboxDangerMarkers[key] = { marker, element: el };
+    });
+
+    if (state.visitedStops.length > 0) {
+      const lastStop = state.visitedStops[state.visitedStops.length - 1];
+      updateMapboxMarkers(lastStop);
+      const loc = mapLocations[lastStop];
+      if (loc) {
+        const zoom = getZoomForStop(lastStop);
+        mapboxMap.flyTo({ center: [loc.lng, loc.lat], zoom: zoom, speed: 1.2, essential: true });
+      }
+    }
+  });
+}
+
+function getZoomForStop(stop) {
+  if (stop === 'washington') return 10;
+  if (stop === 'sarajevo') return 8;
+  return 7;
+}
+
+function updateWesternFront() {
+  if (!mapboxMap || !mapboxMap.getSource('western-front')) return;
+
+  let coords = [];
+  if (state.visitedStops.includes('ypres')) {
+    coords = westernFrontRoute;
+  }
+
+  mapboxMap.getSource('western-front').setData({
+    type: 'Feature',
+    geometry: { type: 'LineString', coordinates: coords }
+  });
+}
+
+function updateMapboxMarkers(currentStop) {
+  Object.entries(mapboxMarkers).forEach(([key, { element }]) => {
+    element.classList.remove('visited', 'current');
+    if (state.visitedStops.includes(key) && key !== currentStop) {
+      element.classList.add('visited');
+    }
+    if (key === currentStop) {
+      element.classList.add('current');
+    }
+  });
+
+  Object.entries(dangerTriggers).forEach(([stop]) => {
+    if (state.visitedStops.includes(stop) && mapboxDangerMarkers[stop]) {
+      mapboxDangerMarkers[stop].element.classList.add('visible');
+    }
+  });
+
+  updateWesternFront();
+}
+
+function updateRouteMap(currentStop, locationText, dateText) {
+  if (!currentStop) return;
+  const idx = stopOrder.indexOf(currentStop);
+  if (idx === -1) return;
+
+  if (!state.visitedStops.includes(currentStop)) {
+    state.visitedStops.push(currentStop);
+  }
+
+  if (locationText) document.getElementById('callout-location').textContent = locationText;
+  if (dateText) document.getElementById('callout-date').textContent = dateText;
+
+  if (!mapboxMap) return;
+
+  updateMapboxMarkers(currentStop);
+
+  const loc = mapLocations[currentStop];
+  if (!loc) return;
+
+  const zoom = getZoomForStop(currentStop);
+
+  if (currentStop === 'washington' || currentStop === 'sarajevo') {
+    mapboxMap.flyTo({
+      center: [loc.lng, loc.lat],
+      zoom: zoom,
+      speed: 0.6,
+      curve: 2,
+      essential: true
+    });
+  } else {
+    mapboxMap.flyTo({
+      center: [loc.lng, loc.lat],
+      zoom: zoom,
+      speed: 0.8,
+      essential: true
+    });
+  }
+}
+
+// ============================================================
+// SCENE DATA
+// ============================================================
+const scenes = {
+
+// ------ SCENE 1: THE ASSASSINATION ------
+scene1: {
+  location: "Sarajevo, Bosnia",
+  date: "June 28, 1914",
+  stop: "sarajevo",
+  title: "The Shot Heard Round the World",
+  narrative: `
+    <p>You are a young British journalist on assignment in the Balkans, that volatile corner of southeastern Europe where the Ottoman and Austro-Hungarian empires are crumbling and new nations are fighting to be born. Your editor has sent you to cover the visit of <strong>Archduke Franz Ferdinand</strong>, heir to the Austro-Hungarian throne, to the provincial capital of Sarajevo.</p>
+
+    <p>The date is significant: June 28 is <span class="vocab-term" data-def="St. Vitus Day (Vidovdan) — a date of enormous symbolic importance to Serbian nationalists, commemorating the 1389 Battle of Kosovo against the Ottoman Empire. Choosing this date for a royal visit to Bosnia, which Austria-Hungary had annexed from the Ottoman Empire in 1908, was seen as a deliberate provocation by Serbian nationalists.">Vidovdan</span>, a sacred day in Serbian national history. Bosnia has a large Serbian population that resents Austro-Hungarian rule. The security arrangements seem dangerously thin.</p>
+
+    <p>The Archduke's motorcade turns onto the Appel Quay along the Miljacka River. A young man steps forward from the crowd — <strong>Gavrilo Princip</strong>, 19 years old, a Bosnian Serb nationalist. He raises a pistol and fires twice.</p>
+
+    <p>The Archduke and his wife, Sophie, are both hit. Within the hour, they are dead.</p>
+
+    <div class="historical-note">
+      <strong>Historical context:</strong> The assassination was carried out by members of the <span class="vocab-term" data-def="The Black Hand (Ujedinjenje ili smrt — 'Unification or Death') was a secret Serbian nationalist organization that sought to unite all Serb-inhabited territories. Its members included Serbian military officers who helped arm and train the assassins. The Serbian government's knowledge of the plot remains debated by historians.">Black Hand</span>, a Serbian nationalist group. But the assassination was merely the spark. The real fuel was a system of <span class="vocab-term" data-def="A network of mutual defense agreements between European powers. The Triple Alliance linked Germany, Austria-Hungary, and Italy. The Triple Entente linked France, Russia, and Britain. These alliances meant that a conflict between two nations could rapidly draw in all the major powers of Europe — which is exactly what happened.">military alliances</span> that linked every major European power in a web of mutual defense treaties. Austria-Hungary blamed Serbia. Russia mobilized to defend Serbia. Germany backed Austria-Hungary. France was allied with Russia. Britain was allied with France. Within six weeks of the assassination, all of Europe was at war.
+      <p style="margin-top:0.75rem;">What makes the outbreak of World War I so haunting is that <em>almost no one wanted a general European war</em>. Diplomats miscalculated. Generals followed mobilization timetables that could not be stopped once started. Leaders assumed the war would be short. The German Kaiser reportedly told his troops: <strong>"You will be home before the leaves have fallen from the trees."</strong> The leaves fell four times before it was over.</p>
+    </div>
+
+    <p>As you file your story, the implications are beginning to dawn on the diplomats and military attaches gathered in Sarajevo. An Austrian colonel tells you: <strong>"This means war with Serbia. And if Russia intervenes..."</strong> He doesn't finish the sentence. He doesn't need to.</p>
+
+    <p>Within weeks, the <span class="vocab-term" data-def="A rapid series of diplomatic ultimatums, mobilization orders, and declarations of war in July 1914. Austria-Hungary issued an ultimatum to Serbia on July 23. Serbia's response was conciliatory but insufficient. Austria declared war on July 28. Russia mobilized on July 30. Germany declared war on Russia on August 1 and on France on August 3. Britain declared war on Germany on August 4 after Germany invaded Belgium.">July Crisis</span> spirals out of control. Austria-Hungary declares war on Serbia. Russia mobilizes. Germany declares war on Russia, then France. On August 4, Germany invades neutral Belgium to execute its war plan. Britain, bound by treaty to defend Belgian neutrality, declares war on Germany.</p>
+
+    <p>The lamps are going out all over Europe. They will not be lit again in your lifetime.</p>
+  `,
+  prompt: "How do you frame your story about the assassination?",
+  choices: [
+    {
+      label: "A",
+      text: "Focus on the alliance system and the diplomatic crisis — this assassination could trigger a chain reaction that drags all of Europe into war.",
+      consequence: `<p>Your story runs under the headline: <em>"HEIR TO THRONE SLAIN — Alliance System Threatens to Drag Continent into War."</em> Your editor is impressed by your analysis. Most British papers are focused on the assassination itself, but you've identified the real danger — the web of alliances that could turn a Balkan crisis into a European catastrophe.</p>
+      <p>A British diplomat you interview confirms your fears: <em>"The alliances are like a loaded gun with a hair trigger. This assassination may be the bump that sets it off. And once the mobilization timetables begin, no one can stop them."</em></p>`,
+      next: "scene2"
+    },
+    {
+      label: "B",
+      text: "Focus on the nationalist passions in the Balkans — this is a story about peoples struggling for self-determination against dying empires.",
+      consequence: `<p>Your story runs with the headline: <em>"MURDER IN SARAJEVO — Nationalist Fury Erupts Against Austro-Hungarian Rule."</em> You interview Bosnian Serbs who, while not endorsing murder, describe decades of resentment against Habsburg rule. You file a nuanced piece about how the great empires have suppressed the aspirations of small nations for generations.</p>
+      <p>A Serbian professor tells you: <em>"You in the West draw lines on maps and call it order. But the people who live inside those lines have their own histories, their own dreams. You cannot contain that forever."</em> Your editor publishes the story but warns: <em>"The real question now is whether the great powers can keep this contained."</em></p>`,
+      next: "scene2"
+    }
+  ]
+},
+
+// ------ SCENE 2: THE INVASION OF BELGIUM ------
+scene2: {
+  location: "Brussels, Belgium",
+  date: "August 4, 1914",
+  stop: "brussels",
+  title: "The Rape of Belgium",
+  narrative: `
+    <p>The war has begun with terrifying speed. Germany's plan — the <span class="vocab-term" data-def="Germany's war plan, originally designed by Count Alfred von Schlieffen in 1905. It called for a massive right-wing sweep through neutral Belgium and into northern France to encircle Paris and knock France out of the war in six weeks, before Russia could fully mobilize in the east. The plan required violating Belgian neutrality — which brought Britain into the war.">Schlieffen Plan</span> — requires a rapid invasion of France through neutral Belgium. The German army needs to knock France out of the war in six weeks, before Russia can fully mobilize its vast army in the east.</p>
+
+    <p>Germany has demanded that Belgium allow its armies to pass through. King Albert I has refused. <strong>"Belgium is a nation, not a road,"</strong> he declared. The German army invades anyway.</p>
+
+    <p>You have rushed to Belgium to cover the invasion. What you witness shocks you. The German army, frustrated by unexpectedly fierce Belgian resistance, begins a campaign of deliberate terror against civilians. In the town of <strong>Leuven</strong>, German soldiers burn the medieval university library — 300,000 books and irreplaceable manuscripts destroyed. In <strong>Dinant</strong>, 674 civilians are lined up and shot. Across Belgium, towns are burned, civilians executed, and women assaulted.</p>
+
+    <div class="historical-note">
+      <strong>Historical context:</strong> The German atrocities in Belgium were extensively documented and became a powerful Allied propaganda tool. While some accounts were exaggerated for propaganda purposes, modern historians have confirmed that the German army killed approximately <strong>6,500 Belgian and French civilians</strong> in the opening weeks of the war. The destruction of the Leuven library was real and became a symbol of German "barbarism" worldwide. The invasion of neutral Belgium was the immediate cause of British entry into the war — Britain was bound by the 1839 Treaty of London to guarantee Belgian neutrality. When the German Chancellor dismissed the treaty as a <strong>"scrap of paper,"</strong> it became one of the most infamous phrases of the war.
+    </div>
+
+    <p>The British Expeditionary Force — a small, professional army of 80,000 men — has crossed the Channel and is moving into position alongside the French and Belgian armies. They are confident and well-trained, but they are about to face the largest army in Europe.</p>
+
+    <p>The mood in Britain is electric. Volunteers are lining up at recruiting stations across the country, fired by patriotism and outrage at the invasion of "poor little Belgium." Lord Kitchener, the new Secretary of State for War, is one of the few who sees what is coming. He tells the Cabinet: <strong>"This war will not be over by Christmas. It will last at least three years, and it will require armies of millions."</strong> Most of his colleagues think he is being absurd.</p>
+  `,
+  prompt: "Your editor wants you to choose your focus. What story do you pursue?",
+  choices: [
+    {
+      label: "A",
+      text: "Follow the British Expeditionary Force to the front lines — the real story is the coming clash of armies, and British readers want to know what their soldiers face.",
+      consequence: `<p>You attach yourself to the BEF as it marches into Belgium. The professional British soldiers are impressive — disciplined, fit, confident. At the Battle of Mons on August 23, the BEF's rapid rifle fire is so accurate that the Germans believe they are facing machine guns. But the numbers are overwhelming. The BEF is forced into a long, exhausting retreat.</p>
+      <p>A young officer tells you during the retreat: <em>"We can hold any position against them — our musketry is superb. But there are simply too many of them. For every German we kill, ten more appear. We need reinforcements. We need an army ten times this size."</em> Kitchener, it seems, was right.</p>`,
+      next: "scene3"
+    },
+    {
+      label: "B",
+      text: "Stay in Belgium and document the civilian atrocities — the world needs to see what this invasion means for ordinary people caught in the path of armies.",
+      consequence: `<p>You spend weeks interviewing Belgian refugees streaming westward. Their accounts are devastating. Families separated. Houses burned. Summary executions. An elderly woman from Leuven describes watching soldiers throw books from the university library into a bonfire: <em>"Three hundred years of knowledge, burning. They laughed as it burned."</em></p>
+      <p>Your dispatches are published across Britain and America. They help galvanize public opinion against Germany and fuel the wave of voluntary enlistment sweeping Britain. But a veteran journalist warns you: <em>"Be careful. In war, the first casualty is truth. Both sides will use suffering to serve their purposes. Your job is to report what you see — not what governments want you to see."</em></p>`,
+      next: "scene3"
+    }
+  ]
+},
+
+// ------ SCENE 3: FIRST MARNE / RACE TO THE SEA ------
+scene3: {
+  location: "The River Marne, France",
+  date: "September 5\u201312, 1914",
+  stop: "marne",
+  title: "The Miracle of the Marne",
+  narrative: `
+    <p>The German advance has been astonishing. In just four weeks, German armies have swept through Belgium and deep into France. Paris is in danger. The French government has fled to Bordeaux. It seems as if the Schlieffen Plan might actually work.</p>
+
+    <p>But the German armies are exhausted. They have marched hundreds of miles in the August heat. Supply lines are stretched to breaking. And General <strong>Alexander von Kluck</strong>, commanding the German right wing, makes a fateful decision — instead of swinging west of Paris as the plan requires, he turns southeast, exposing his flank.</p>
+
+    <p>The French and British seize the opportunity. On September 5, the <strong>Battle of the Marne</strong> begins — a massive counter-attack along a 300-mile front. In a famous episode, 600 Parisian taxicabs are commandeered to rush reinforcements to the front. The German advance is stopped. Then it is pushed back.</p>
+
+    <div class="historical-note">
+      <strong>Historical context:</strong> The First Battle of the Marne was one of the most consequential battles in history. By stopping the German advance, it ensured that the war would <em>not</em> be the quick victory Germany had planned. But neither side could defeat the other. What followed was the <strong>"Race to the Sea"</strong> — both armies tried to outflank each other to the north, extending the front line until it reached the English Channel. By November 1914, the Western Front had solidified into a continuous line of trenches stretching <strong>440 miles</strong> from the Swiss border to the Belgian coast. Neither side would move this line more than a few miles in either direction for the next three and a half years. The war of movement was over. The war of attrition had begun.
+    </div>
+
+    <p>You file your story from behind the French lines. The mood is triumphant — Paris has been saved. But as you walk among the wounded being carried to field hospitals, a French officer says something that stays with you: <strong>"We have won the battle. But we have not won the war. And I fear the war we are about to fight will be nothing like the one we prepared for."</strong></p>
+
+    <p>He is right. Both sides begin to dig. Within weeks, the trenches stretch unbroken from Switzerland to the sea. The soldiers settle into the mud. And the killing becomes industrial.</p>
+  `,
+  prompt: "The front has stabilized. How do you report on the emerging stalemate?",
+  choices: [
+    {
+      label: "A",
+      text: "Report the strategic picture — the Schlieffen Plan has failed, and the war will be far longer and costlier than anyone predicted. The public needs to understand what is coming.",
+      consequence: `<p>Your dispatch runs under the headline: <em>"THE WAR THAT WAS SUPPOSED TO END BY CHRISTMAS — Marne Victory Cannot Mask the Coming Nightmare."</em> You explain that neither side can break through the other's defenses, that the war has become a siege 440 miles long, and that this means years of grinding attrition rather than the quick, decisive victory both sides promised.</p>
+      <p>Your editor is uneasy. <em>"The public wants heroes and victories, not strategic analysis,"</em> he writes. But he publishes the piece. A senior military officer reads your article and sends you a private note: <em>"You are the only correspondent who seems to understand what is happening. God help us all."</em></p>`,
+      next: "scene4"
+    },
+    {
+      label: "B",
+      text: "Report from the trenches — go to where the soldiers are and describe what daily life in this new kind of warfare actually looks like.",
+      consequence: `<p>You make your way to the front and spend a week in the newly dug trenches. What you find is a world unlike anything you imagined. Men standing in muddy ditches, separated from the enemy by a few hundred yards of open ground — the <span class="vocab-term" data-def="The area between opposing trench lines, typically 100 to 300 yards wide. It was usually cratered by shellfire, tangled with barbed wire, and swept by machine gun fire. Crossing No Man's Land in an attack was extraordinarily dangerous. The term came to symbolize the futility and horror of trench warfare.">No Man's Land</span> — strung with barbed wire and swept by machine guns.</p>
+      <p>A sergeant describes his daily routine: <em>"Stand-to at dawn. Watch for snipers. Fix the sandbags. Bail out the water. Try to eat something without the rats getting it first. Wait for dark. Then the working parties go out — wiring, digging, bringing up supplies. Sleep if you can. Then stand-to again."</em> Your dispatch brings the reality of the trenches to British breakfast tables for the first time.</p>`,
+      next: "scene4"
+    }
+  ]
+},
+
+// ------ SCENE 4: YPRES / POISON GAS ------
+scene4: {
+  location: "Ypres, Belgium",
+  date: "April 22, 1915",
+  stop: "ypres",
+  title: "The Cloud",
+  narrative: `
+    <p>The <span class="vocab-term" data-def="A medieval Flemish cloth-trading city in western Belgium. Ypres (called 'Wipers' by British soldiers who couldn't pronounce it) saw three major battles during the war. The Ypres Salient — a bulge in the Allied lines around the city — was one of the most dangerous and hotly contested sectors of the Western Front. By 1918, the ancient city had been reduced to rubble.">Ypres Salient</span> has been a hellish sector since the autumn. The medieval Flemish city, which the British soldiers call "Wipers," sits in a shallow bowl surrounded by low ridges held by the Germans. The Allies hold the city and a bulge — a salient — in the lines around it. It is a terrible position, overlooked from three sides.</p>
+
+    <p>On the afternoon of April 22, 1915, French colonial troops — Algerian and Moroccan soldiers from the <span class="vocab-term" data-def="French colonial divisions recruited from North Africa. At the Second Battle of Ypres, the 45th Algerian Division and the 87th Territorial Division held the northern part of the Ypres Salient. They bore the brunt of the first poison gas attack in the history of modern warfare.">45th Division</span> — notice something strange. A yellow-green cloud is drifting toward their positions from the German lines. It hugs the ground. It moves slowly. As it reaches the trenches, men begin to choke.</p>
+
+    <p><strong>Chlorine gas.</strong> 168 tons of it, released from 5,730 cylinders. The first large-scale poison gas attack in the history of warfare.</p>
+
+    <p>The effect is catastrophic. Men who have never faced anything like this clutch their throats, foam at the mouth, turn blue, and die gasping. The French colonial troops — brave men who had held their positions under shellfire — break and run. A four-mile gap opens in the Allied line. If the Germans exploit it, the entire Ypres Salient could collapse.</p>
+
+    <div class="historical-note">
+      <strong>Historical context:</strong> The Second Battle of Ypres (April 22 – May 25, 1915) was the first major battle in which poison gas was used as a weapon. The <span class="vocab-term" data-def="The Hague Conventions of 1899 and 1907 prohibited the use of 'poison or poisoned weapons' in warfare. Germany argued that gas released from cylinders (rather than fired in shells) technically did not violate the conventions. Both sides eventually used poison gas extensively — chlorine, phosgene, and the devastating mustard gas — causing approximately 1.3 million casualties during the war. Gas became one of the most feared and reviled weapons of the conflict.">Hague Conventions</span> had prohibited the use of poison in warfare, but Germany argued that gas released from cylinders was technically not a violation. It was a distinction that meant nothing to the men choking to death in the trenches. Canadian troops — many of them volunteers who had enlisted just months earlier — held the line against repeated gas attacks by urinating on handkerchiefs and pressing them over their faces. Their stand at Ypres became a defining moment of Canadian national identity.
+      <p style="margin-top:0.75rem;">Both sides would go on to develop increasingly lethal chemical weapons. <strong>Mustard gas</strong>, introduced in 1917, caused agonizing chemical burns and could contaminate an area for days. By the war's end, chemical weapons had caused an estimated <strong>1.3 million casualties</strong>, including 90,000 deaths. The horror of gas warfare led to the Geneva Protocol of 1925, which banned the use of chemical and biological weapons — though many nations continued to stockpile them.</p>
+    </div>
+
+    <p>You reach the front as the chaos unfolds. Survivors stumble past you, eyes streaming, coughing blood. A Canadian medical officer, working frantically to treat gas casualties, describes what he sees: <strong>"Their faces are blue. Their lungs are filling with fluid. They are drowning — drowning on dry land, in their own bodies. I have never seen anything like this. No one has."</strong></p>
+
+    <div class="poetry-block">
+      Gas! GAS! Quick, boys! — An ecstasy of fumbling,<br>
+      Fitting the clumsy helmets just in time;<br>
+      But someone still was yelling out and stumbling,<br>
+      And flound'ring like a man in fire or lime...<br>
+      Dim, through the misty panes and thick green light,<br>
+      As under a green sea, I saw him drowning.<br>
+      <div class="poetry-attribution">— Wilfred Owen, "Dulce et Decorum Est" (1917)</div>
+    </div>
+  `,
+  prompt: "The gas attack has opened a new chapter in the horror of this war. How do you report it?",
+  choices: [
+    {
+      label: "A",
+      text: "Focus on the outrage — Germany has crossed a moral line by using poison gas. This is a war crime that the world must condemn.",
+      consequence: `<p>Your dispatch is a thunderbolt: <em>"GERMANY UNLEASHES POISON — Thousands Choke and Die as Hague Conventions Are Torn to Shreds."</em> You describe the suffering in graphic detail — the frothing mouths, the blue faces, the men drowning in their own lungs. Your story is reprinted in papers across the Allied world and in neutral America.</p>
+      <p>The outcry is enormous. But a German prisoner you interview sees it differently: <em>"You British use naval blockade to starve our women and children. We use gas to break the deadlock. Both are terrible. Neither side has clean hands in this war."</em> You file his words but they are cut by your editor.</p>`,
+      next: "scene5"
+    },
+    {
+      label: "B",
+      text: "Focus on the Canadian stand — men who held the line against a weapon no one had ever faced, using nothing but courage and improvised cloth masks.",
+      consequence: `<p>Your story celebrates the extraordinary courage of the Canadian troops: <em>"CANADIANS HOLD THE LINE — Citizen Soldiers Stand Against Poison While Veterans Flee."</em> You describe how these men — many of them farmers, clerks, and students from Saskatchewan and Ontario — held their positions while the gas rolled over them, tying soaked handkerchiefs over their faces.</p>
+      <p>A young Canadian private, barely twenty, tells you: <em>"We weren't going to run. The Algerians who broke aren't cowards — no one had ever seen gas before. But we could see the gap in the line, and we knew that if we didn't hold, it was over. So we held."</em> Your story makes the front page. Canada, thousands of miles from the fighting, begins to see itself as a nation forged in fire.</p>`,
+      next: "scene5"
+    }
+  ]
+},
+
+// ------ SCENE 5: VERDUN ------
+scene5: {
+  location: "Verdun, France",
+  date: "February 21 \u2013 December 18, 1916",
+  stop: "verdun",
+  title: "They Shall Not Pass",
+  narrative: `
+    <p>The German strategy for 1916 is the brainchild of Chief of Staff <strong>Erich von Falkenhayn</strong>. He has chosen to attack the ancient fortress city of <strong>Verdun</strong> — not to capture it, but to <em>bleed the French army white</em>. He calls it <span class="vocab-term" data-def="Falkenhayn's strategy memo, presented to the Kaiser in December 1915, argued that France was the weakest of the Allied powers and could be knocked out of the war by attacking a position the French would be compelled to defend at any cost. Verdun — with its ring of fortresses and its symbolic importance as the gateway to France — was that position. The goal was not to take the city but to inflict unsustainable casualties on the French defenders.">Operation Gericht</span> — "Judgment."</p>
+
+    <p>The calculation is coldly mathematical: Verdun is a place the French <em>cannot</em> abandon. Its fortresses guard the road to Paris. Its name is sacred in French military history. If Germany attacks Verdun, France will feed division after division into the defense — and German artillery will destroy them.</p>
+
+    <p>On February 21, 1916, the German bombardment begins. <strong>One million shells in the first day.</strong> The heaviest concentration of firepower the world has ever seen. The ground shakes for miles. The landscape is transformed into a cratered moonscape of mud and shattered trees.</p>
+
+    <p>The French commander, General <strong>Philippe Pétain</strong>, organizes the defense with one order that becomes the battle's motto: <strong><em>"Ils ne passeront pas!"</em> — "They shall not pass!"</strong></p>
+
+    <div class="historical-note">
+      <strong>Historical context:</strong> The Battle of Verdun lasted 303 days and became a symbol of the destructive futility of the war. French casualties were approximately <strong>377,000</strong> (162,000 killed). German casualties were approximately <strong>337,000</strong> (143,000 killed). The battle achieved nothing strategically — the front line barely moved. But Verdun became the defining experience of the war for France, much as the Somme did for Britain. Pétain's rotation system ensured that <strong>70% of the entire French army</strong> served at Verdun at some point — binding the horror of the battle into French national memory.
+      <p style="margin-top:0.75rem;">The landscape around Verdun was so devastated that nine villages were completely destroyed and never rebuilt. They are marked on French maps as <em>"villages that died for France."</em> A century later, the soil still contains human remains, unexploded shells, and chemical residues. The area is known as the <strong>Zone Rouge</strong> — the Red Zone — and parts of it remain too dangerous to inhabit.</p>
+    </div>
+
+    <p>You travel to Verdun in the spring. The road to the fortress — the <em>Voie Sacrée</em>, the Sacred Way — is a single road packed with an endless stream of trucks carrying men and supplies to the front. It runs day and night. The men going forward stare blankly. The men coming back look a decade older than when they went in.</p>
+
+    <p>A French lieutenant, his uniform caked in dried mud and blood, grabs your arm: <strong>"Write the truth. Tell them what it is like. The shells never stop. You cannot hear yourself think. The dead are everywhere — in the walls of the trenches, under your feet, above your head. We live among the dead. We have become the dead."</strong></p>
+  `,
+  prompt: "Verdun is consuming an entire generation. How do you tell this story?",
+  choices: [
+    {
+      label: "A",
+      text: "Report on Falkenhayn's strategy — the cold mathematics of attrition, where the goal is not to capture territory but to kill so many men that the enemy collapses. Show readers what 'bleeding them white' actually means.",
+      consequence: `<p>Your analysis piece runs under the headline: <em>"THE ARITHMETIC OF DEATH — Inside Germany's Plan to Bleed France at Verdun."</em> You explain Falkenhayn's calculation in detail — how he chose Verdun precisely because France could not abandon it, how German artillery was positioned to create a killing ground, how the mathematics of attrition treat human beings as entries in a ledger.</p>
+      <p>But you also note the irony: the battle is bleeding Germany nearly as badly as France. Falkenhayn's plan assumed that Germany could inflict casualties at a favorable ratio. It cannot. The "mincing machine," as the soldiers call it, devours both sides equally. A German officer captured near Fort Douaumont tells you: <em>"We came to bleed the French. Instead, we are bleeding together."</em></p>`,
+      next: "scene6"
+    },
+    {
+      label: "B",
+      text: "Tell the human story — what the battle is doing to the men who fight it. The statistics are abstract. The faces are not.",
+      consequence: `<p>You spend ten days near Verdun, talking to soldiers coming off the line. Your dispatch is raw and unforgettable: <em>"THE MEN WHO CAME BACK FROM VERDUN — And What the Battle Took From Them."</em></p>
+      <p>You write about a corporal who hasn't slept in four days. About a stretcher-bearer who lost his mind after carrying his best friend's body in pieces. About a company commander who went into the line with 200 men and came out with 34. A French priest serving as a military chaplain tells you: <em>"I have seen things at Verdun that make me question whether God is watching. And then I see a man share his last drop of water with a wounded enemy, and I believe again."</em> Your editor calls it the finest war reporting he has ever published.</p>`,
+      next: "scene6"
+    }
+  ]
+},
+
+// ------ SCENE 6: THE SOMME ------
+scene6: {
+  location: "The Somme River, France",
+  date: "July 1 \u2013 November 18, 1916",
+  stop: "somme",
+  title: "The Worst Day",
+  narrative: `
+    <p>While Verdun grinds on, the British are preparing their own great offensive. The <strong>Battle of the Somme</strong> is intended to relieve pressure on the French at Verdun and break through the German lines. It is the first major offensive for <span class="vocab-term" data-def="Kitchener's New Army — the mass volunteer force raised by Lord Kitchener's famous 'Your Country Needs You' recruiting campaign. By 1916, these volunteers — many of them organized into 'Pals Battalions' of men from the same town, factory, or club — were ready for their first major battle. The system meant that a single day's fighting could wipe out the young men of an entire community.">Kitchener's New Army</span> — the hundreds of thousands of volunteers who flocked to the colors in 1914.</p>
+
+    <p>Many are organized into <span class="vocab-term" data-def="Battalions recruited from the same town, workplace, or social group. The Accrington Pals, the Leeds Pals, the Glasgow Tramways Battalion — men who grew up together, worked together, and enlisted together. The idea was to boost morale by keeping friends together. The consequence was that a single battle could destroy an entire community's young men in a single day.">Pals Battalions</span> — men from the same town, the same factory, the same football club, who enlisted together. The Accrington Pals. The Leeds Pals. The Grimsby Chums. They trained together. They joked together. On July 1, 1916, they would die together.</p>
+
+    <p>The British have bombarded the German positions for seven days. <strong>1.7 million shells.</strong> The generals are confident the bombardment has destroyed the German defenses. The soldiers are told they will walk across No Man's Land against shattered trenches and demoralized survivors.</p>
+
+    <p>At 7:30 a.m. on July 1, the whistles blow. Tens of thousands of men climb out of their trenches and begin to advance. They walk upright, in long lines, across open ground, carrying 70 pounds of equipment each. The generals have told them there is no need to run.</p>
+
+    <p><strong>The Germans are waiting.</strong> They have sheltered in deep dugouts — some 30 feet underground, reinforced with concrete — and the bombardment has not touched them. As the British emerge into No Man's Land, the Germans climb out, set up their machine guns, and begin firing.</p>
+
+    <p><strong>On July 1, 1916, the British army suffers 57,470 casualties, including 19,240 killed.</strong> It remains the worst day in the history of the British military. Some Pals Battalions are virtually annihilated. In the town of Accrington, every family on some streets loses a son, a brother, a husband.</p>
+
+    <div class="historical-note">
+      <strong>Historical context:</strong> The Battle of the Somme continued for four and a half months. When it ended in November 1916, the Allies had advanced approximately <strong>six miles</strong> at a cost of over <strong>600,000 Allied casualties</strong> (including approximately 420,000 British) and an estimated <strong>500,000 German casualties</strong>. The battle saw the first use of <span class="vocab-term" data-def="Armored fighting vehicles developed in secret by the British and first used at the Battle of Flers-Courcelette on September 15, 1916, during the Somme offensive. Early tanks were slow, unreliable, and mechanically temperamental, but they terrified German soldiers who had never seen anything like them. The British codenamed them 'tanks' during development to disguise their purpose — workers were told they were building mobile water tanks.">tanks</span> in warfare, on September 15, 1916. The Somme shattered the idealism of the volunteer army and began the transformation of public attitudes toward the war. After the Somme, the idea that the war was a glorious adventure was dead.
+      <p style="margin-top:0.75rem;">The British commander, General <strong>Sir Douglas Haig</strong>, has been the subject of fierce historical debate ever since. His defenders argue that the Somme was a necessary battle of attrition that wore down the German army. His critics — including many of the men who served under him — called him "Butcher Haig" and accused him of sending hundreds of thousands of men to their deaths through tactical incompetence and a refusal to adapt to the realities of modern warfare.</p>
+    </div>
+
+    <div class="poetry-block">
+      What passing-bells for these who die as cattle?<br>
+      \u2003\u2014 Only the monstrous anger of the guns.<br>
+      \u2003\u2003Only the stuttering rifles' rapid rattle<br>
+      Can patter out their hasty orisons.<br>
+      No mockeries now for them; no prayers nor bells;<br>
+      \u2003Nor any voice of mourning save the choirs, \u2014<br>
+      The shrill, demented choirs of wailing shells;<br>
+      \u2003And bugles calling for them from sad shires.
+      <div class="poetry-attribution">— Wilfred Owen, "Anthem for Doomed Youth" (1917)</div>
+    </div>
+  `,
+  prompt: "July 1 is the worst day in British military history. How do you report it?",
+  choices: [
+    {
+      label: "A",
+      text: "Report the catastrophic failure honestly — the bombardment didn't work, the tactics were wrong, and the generals sent men walking into machine gun fire. The public deserves the truth.",
+      consequence: `<p>Your dispatch is devastating: <em>"CATASTROPHE ON THE SOMME — Thousands Die in Minutes as Bombardment Fails to Break German Defenses."</em> You describe the lines of men walking into machine gun fire, the Pals Battalions destroyed in minutes, the impossible gap between the generals' confidence and the reality on the ground.</p>
+      <p>The military censors nearly kill your story. Your editor fights to publish a toned-down version. A staff officer confronts you at headquarters: <em>"Do you want to help the enemy? Reporting like this undermines morale."</em> You reply: <em>"Sending men to walk into machine guns undermines morale. I'm just describing what happened."</em></p>`,
+      next: "scene7"
+    },
+    {
+      label: "B",
+      text: "Focus on the courage and sacrifice of the Pals Battalions — these were ordinary men who volunteered to fight for their country, and their bravery deserves to be honored even in defeat.",
+      consequence: `<p>Your dispatch focuses on the human cost: <em>"THE PALS WHO FELL TOGETHER — Volunteers from Britain's Towns and Cities Give Everything on the Somme."</em> You tell the story of men from the same street who enlisted together, trained together, and died together in the first ten minutes of the battle.</p>
+      <p>A sergeant from the Leeds Pals, one of the few survivors, tells you: <em>"We went over together, like we said we would. Half the lads I'd known since school were dead before we'd gone fifty yards. But not one of them turned back. Not one."</em> Back in England, the casualty lists begin to arrive. In some communities, there is hardly a family untouched. The Pals system, designed to boost morale, has concentrated grief beyond endurance.</p>`,
+      next: "scene7"
+    }
+  ]
+},
+
+// ------ SCENE 7: AMERICA ENTERS ------
+scene7: {
+  location: "Washington, D.C., United States",
+  date: "April 6, 1917",
+  stop: "washington",
+  title: "The World Must Be Made Safe for Democracy",
+  narrative: `
+    <p>For nearly three years, the United States has stayed out of the war. President <strong>Woodrow Wilson</strong> won re-election in 1916 on the slogan <em>"He kept us out of war."</em> American public opinion has been divided — many Americans sympathize with the Allies, but millions of German-Americans and Irish-Americans oppose joining Britain's war.</p>
+
+    <p>Two events have changed everything.</p>
+
+    <p>First, in January 1917, Germany announced a policy of <span class="vocab-term" data-def="Germany's decision to sink any ship — military or civilian, Allied or neutral — found in the waters around Britain and France. Germany had briefly suspended unrestricted submarine warfare after the sinking of the Lusitania in 1915 killed 1,198 people including 128 Americans. Resuming the policy was a gamble: Germany's leaders knew it would probably bring America into the war but calculated they could starve Britain into surrender before American troops could arrive in significant numbers.">unrestricted submarine warfare</span> — German U-boats would sink any ship, including neutral American vessels, in the waters around Britain and France. American ships and American lives are now at risk.</p>
+
+    <p>Second, British intelligence intercepted the <span class="vocab-term" data-def="A secret diplomatic message sent by German Foreign Secretary Arthur Zimmermann to the German ambassador in Mexico in January 1917. It proposed a military alliance between Germany and Mexico in the event of war with the United States. In exchange for Mexican support, Germany promised to help Mexico recover Texas, New Mexico, and Arizona — territories lost in the Mexican-American War of 1848. British intelligence intercepted and decoded the telegram and passed it to the United States. Its publication caused outrage in America.">Zimmermann Telegram</span> — a secret German proposal offering Mexico an alliance against the United States, with the promise of recovering Texas, New Mexico, and Arizona. When the telegram was made public, American outrage was immense.</p>
+
+    <p>On April 2, 1917, President Wilson addresses Congress: <strong>"The world must be made safe for democracy."</strong> Four days later, the United States declares war on Germany.</p>
+
+    <div class="historical-note">
+      <strong>Historical context:</strong> America's entry into the war was decisive — but not immediately. The U.S. had a tiny army in 1917. It would take more than a year to recruit, train, equip, and transport a fighting force to France. The first American troops — the <span class="vocab-term" data-def="The American Expeditionary Forces, commanded by General John J. Pershing. Pershing insisted that American troops fight as an independent army rather than being fed piecemeal into French and British units. By the war's end, over 2 million American soldiers had served in France. The AEF suffered over 320,000 casualties, including approximately 116,000 dead — more than half from the influenza pandemic rather than combat.">AEF</span> — would not see significant combat until the spring of 1918. But the promise of millions of fresh American soldiers gave the Allies a psychological boost and convinced Germany that time was running out.
+      <p style="margin-top:0.75rem;">Wilson's idealism — his vision of a post-war world based on democracy, self-determination, and collective security — would culminate in his <strong>Fourteen Points</strong> and his campaign for the League of Nations. But the Senate would reject the League, and Wilson's dream of a new world order would collapse. The failure to build a lasting peace after World War I is one of the great tragedies of the 20th century.</p>
+    </div>
+
+    <p>You have been sent to Washington to cover America's entry. The mood is a mixture of idealism and naivety. American volunteers are enthusiastic but have no idea what awaits them in France. A young American officer, just commissioned, asks you earnestly: <strong>"What's it really like over there?"</strong></p>
+
+    <p>You think of Verdun. You think of the Somme. You think of the gas at Ypres. You are not sure how to answer.</p>
+  `,
+  prompt: "A young American officer asks you what the war is really like. How do you respond?",
+  choices: [
+    {
+      label: "A",
+      text: "Tell him the truth — the trenches, the mud, the gas, the machine guns, the endless bombardment. He deserves to know what he is walking into.",
+      consequence: `<p>You tell him about Verdun, about the Somme, about the gas at Ypres. You describe the mud that swallows men whole, the rats that feast on the dead, the sound of shellfire that drives men mad. His face changes. He is quiet for a long time.</p>
+      <p>Then he says: <em>"I appreciate your honesty. But it doesn't change anything. Those boys over there — your boys, the French boys — they've been dying for three years. It's our turn now. Maybe fresh eyes and fresh legs can break the stalemate."</em> You admire his courage. You pray he survives.</p>`,
+      next: "scene8"
+    },
+    {
+      label: "B",
+      text: "Spare him the worst of it — tell him to be brave, stay low, trust his men, and write home often. There will be time enough for horror when he gets there.",
+      consequence: `<p>You tell him to keep his head down, to listen to the experienced soldiers when he arrives, and to write home as often as he can. You don't describe the gas or the mud or the way a shell can turn a man into nothing. He thanks you warmly and shakes your hand.</p>
+      <p>As he walks away, a colleague — an American reporter who has been covering the war from the French side — says to you quietly: <em>"You were kind to him. Maybe that was the right thing. But I've learned something covering this war: kindness and honesty aren't always the same thing. And in the long run, honesty is kinder."</em></p>`,
+      next: "scene8"
+    }
+  ]
+},
+
+// ------ SCENE 8: PASSCHENDAELE ------
+scene8: {
+  location: "Passchendaele, Belgium",
+  date: "July 31 \u2013 November 10, 1917",
+  stop: "passchendaele",
+  title: "The Mud",
+  narrative: `
+    <p>1917 is the year of breaking. The French army has mutinied — after the disastrous Nivelle Offensive in April, entire divisions refused to attack. The soldiers didn't desert; they held their trenches. But they would no longer march forward into pointless slaughter. General Pétain restored order with a combination of improved conditions and selective executions, but the French army will not mount another major offensive for the rest of the year.</p>
+
+    <p>The burden falls on the British. General <strong>Sir Douglas Haig</strong> launches the Third Battle of Ypres, aimed at breaking through the German lines near the Belgian village of <strong>Passchendaele</strong>. The objective is to reach the Belgian coast and capture the German submarine bases.</p>
+
+    <p>The weather betrays him. The heaviest rains in 30 years turn the battlefield — already shattered by years of shellfire that has destroyed the drainage system — into a sea of liquid mud. Craters fill with water. The mud is so deep that men and horses drown in it. Artillery pieces sink. Wounded men who fall off the duckboard paths disappear into the mire and are never seen again.</p>
+
+    <div class="historical-note">
+      <strong>Historical context:</strong> The Third Battle of Ypres, commonly known as <strong>Passchendaele</strong>, lasted from July 31 to November 10, 1917. British and Commonwealth forces suffered approximately <strong>275,000 casualties</strong>. German casualties were similar — approximately <strong>220,000</strong>. The total advance was approximately <strong>five miles</strong>. The village of Passchendaele was finally captured by Canadian troops on November 6, 1917, only to be abandoned a few months later. The battle has become a byword for the futile slaughter of the Western Front.
+      <p style="margin-top:0.75rem;">Haig's decision to continue the offensive through appalling conditions remains one of the most controversial decisions of the war. His Chief of Staff, General Launcelot Kiggell, reportedly broke down in tears when he finally visited the front late in the battle: <strong>"Good God, did we really send men to fight in that?"</strong> An officer beside him replied: <strong>"It's worse further on up, sir."</strong></p>
+    </div>
+
+    <p>You go forward to Passchendaele in October. The landscape defies description. It is not a battlefield — it is a swamp of death. The only way to move is along narrow duckboard tracks laid over the mud. Step off the track and you sink. The smell is indescribable — a mixture of mud, cordite, gas, and decomposing flesh.</p>
+
+    <p>A stretcher-bearer describes his work: <strong>"It takes sixteen men to carry one wounded man out of the line. Sixteen men, because the mud is so deep that four bearers cannot manage it. And the journey that should take an hour takes six. Some of the wounded die on the way out. Some of the bearers are killed by shellfire. And in the morning, we go back and do it again."</strong></p>
+
+    <div class="poetry-block">
+      I died in hell \u2014<br>
+      (They called it Passchendaele).<br>
+      My wound was slight,<br>
+      And I was hobbling back; and then a shell<br>
+      Burst slick upon the duck-boards: so I fell<br>
+      Into the bottomless mud, and lost the light.
+      <div class="poetry-attribution">— Siegfried Sassoon, "Memorial Tablet" (1918)</div>
+    </div>
+  `,
+  prompt: "Passchendaele is the nadir of the war. What story do you tell?",
+  choices: [
+    {
+      label: "A",
+      text: "Question the leadership directly — ask why Haig continued to send men forward through impossible conditions for five miles of churned mud. This offensive is criminal.",
+      consequence: `<p>Your dispatch is the most confrontational you have ever written: <em>"FIVE MILES OF MUD AND BLOOD — Why Did the Generals Keep Attacking at Passchendaele?"</em> You lay out the facts — the weather, the terrain, the casualty figures, the negligible gains — and ask the question that every soldier at the front is asking: why?</p>
+      <p>The military censors block your story. You fight them. A toned-down version eventually runs, but the questions you raise are being asked in Parliament. A senior politician, after reading your dispatch, tells you: <em>"The gap between what the generals tell us and what men like you report from the front has become a chasm. Something has to give."</em></p>`,
+      next: "scene9"
+    },
+    {
+      label: "B",
+      text: "Write about shell shock — the psychological destruction that this war is inflicting on an entire generation. The physical wounds are terrible, but the invisible ones may be worse.",
+      consequence: `<p>You visit a field hospital behind the lines and interview men suffering from <span class="vocab-term" data-def="The term used during World War I for what is now recognized as post-traumatic stress disorder (PTSD). Soldiers suffering from shell shock experienced tremors, paralysis, blindness, deafness, nightmares, and complete psychological breakdown — often without any visible physical wound. Early in the war, many cases were dismissed as cowardice. Some soldiers were court-martialed and executed for 'desertion' or 'cowardice in the face of the enemy' when they were in fact suffering from severe psychological trauma.">shell shock</span>. Your dispatch is heartbreaking: <em>"THE WOUND YOU CANNOT SEE — How the War is Breaking Men's Minds."</em></p>
+      <p>You describe men who stare at nothing, who shake uncontrollably, who scream at sounds no one else can hear. A military doctor tells you: <em>"These men are not cowards. Their minds have broken under a weight that no human mind was designed to bear. Some of them were the bravest men in their companies before this happened."</em> Yet 306 British soldiers will be executed for cowardice or desertion during the war — many of them almost certainly suffering from shell shock. They will not be pardoned until 2006.</p>`,
+      next: "scene9"
+    }
+  ]
+},
+
+// ------ SCENE 9: THE SPRING OFFENSIVE AND THE HUNDRED DAYS ------
+scene9: {
+  location: "Amiens, France",
+  date: "March \u2013 November 1918",
+  stop: "amiens",
+  title: "The Last Throw",
+  narrative: `
+    <p>The spring of 1918 brings the war's final crisis. Russia has collapsed into revolution and signed the Treaty of Brest-Litovsk, freeing Germany to transfer a million soldiers to the Western Front. For the first time since 1914, Germany has numerical superiority in the West. General <strong>Erich Ludendorff</strong> stakes everything on one last offensive — <span class="vocab-term" data-def="Operation Michael (the Kaiserschlacht or 'Kaiser's Battle'), launched on March 21, 1918, was the first of a series of massive German offensives designed to win the war before American troops arrived in strength. Using innovative infiltration tactics — stormtrooper units that bypassed strongpoints to attack rear areas — the Germans achieved their greatest advance on the Western Front since 1914.">Operation Michael</span>.</p>
+
+    <p>On March 21, the German assault shatters the British Fifth Army. Using new <span class="vocab-term" data-def="Elite German assault troops trained in new infiltration tactics. Instead of attacking in massed waves, stormtroopers moved in small groups, bypassing strongpoints to attack headquarters, supply lines, and communications in the rear. Their tactics anticipated modern infantry warfare and proved devastatingly effective in the spring of 1918.">stormtrooper</span> tactics — small groups of elite soldiers infiltrating weak points rather than attacking in massed waves — the Germans advance 40 miles in two weeks. For the first time since 1914, the front is moving.</p>
+
+    <p>The situation is desperate. On April 11, General Haig issues his famous order: <strong>"Every position must be held to the last man. There must be no retirement. With our backs to the wall and believing in the justice of our cause, each one of us must fight on to the end."</strong></p>
+
+    <p>But Ludendorff's gamble fails. The German army advances too far, too fast. Supply lines cannot keep up. The best stormtroopers are killed in the opening assaults, and the follow-up divisions are exhausted, half-starved men who stop to loot abandoned Allied supply dumps. The offensives lose momentum.</p>
+
+    <p>And the Americans are arriving. By the summer of 1918, <strong>10,000 American soldiers are landing in France every day.</strong> The balance has shifted irreversibly.</p>
+
+    <p>On August 8, the Allies launch a massive counter-attack near <strong>Amiens</strong>. The <strong>Battle of Amiens</strong> — spearheaded by Australian and Canadian troops with massed tanks and aircraft — shatters the German lines. Ludendorff calls it <em>"the black day of the German army."</em> German soldiers surrender in large numbers for the first time. The <span class="vocab-term" data-def="The final Allied offensive of the war, lasting from August 8 to November 11, 1918. A series of coordinated attacks by British, French, American, and Belgian forces broke through the Hindenburg Line and drove the German army steadily eastward. The Hundred Days was characterized by increasingly effective combined-arms tactics — infantry, artillery, tanks, and aircraft working together in ways that prefigured World War II.">Hundred Days Offensive</span> has begun.</p>
+
+    <div class="historical-note">
+      <strong>Historical context:</strong> The Hundred Days Offensive (August 8 – November 11, 1918) was the final campaign of the war. The German army, exhausted by the spring offensives and demoralized by the arrival of American troops, retreated steadily. By October, Germany's allies — Bulgaria, the Ottoman Empire, and Austria-Hungary — had all signed armistices. Revolution broke out in Germany. The Kaiser abdicated on November 9 and fled to the Netherlands. On November 11, 1918, at 5:00 a.m., German representatives signed an armistice in a railway carriage in the Forest of Compiègne. The ceasefire took effect at <strong>11:00 a.m. — the eleventh hour of the eleventh day of the eleventh month.</strong>
+      <p style="margin-top:0.75rem;">In the final hours before the armistice, commanders on both sides continued to order attacks. Approximately <strong>11,000 men were killed, wounded, or went missing</strong> on the last day of the war — more than on D-Day in 1944. The last British soldier killed was Private George Edwin Ellison, shot at 9:30 a.m. — ninety minutes before the ceasefire. The last man killed on any side was Augustin Trébuchon, a French soldier shot at 10:45 a.m. — fifteen minutes before the end. He was carrying a message to his comrades that hot soup would be served after the ceasefire.</p>
+    </div>
+
+    <p>You cover the final advance from Amiens. For the first time in four years, you see open ground ahead of the advancing troops instead of another line of trenches. German prisoners stream to the rear — hollow-eyed, starving boys in threadbare uniforms. The war that was supposed to be over by Christmas 1914 is finally ending — in November 1918.</p>
+  `,
+  prompt: "The war is ending. How do you report these final weeks?",
+  choices: [
+    {
+      label: "A",
+      text: "Report the Allied victory and the collapse of the German army — after four years of stalemate, the front is finally breaking and the end is in sight.",
+      consequence: `<p>Your dispatches capture the exhilaration of the advance: <em>"THE LINE IS BREAKING — German Army in Full Retreat as Allied Offensive Rolls Forward."</em> You describe the liberation of French and Belgian villages, the cheering civilians, the German prisoners surrendering in droves.</p>
+      <p>But even in victory, the cost is staggering. You pass through the old Somme battlefield — still a wasteland of craters and wire two years later. A young Australian officer, surveying the ruins of a French village, says: <em>"We've won. But Christ, look at the price. Look at what we've done to this place. Look at what we've done to each other."</em></p>`,
+      next: "scene10"
+    },
+    {
+      label: "B",
+      text: "Focus on the senseless killing that continues right up to 11:00 a.m. on November 11 — commanders ordering attacks in the final hours when they know the armistice is signed.",
+      consequence: `<p>Your dispatch is one of the angriest you have ever written: <em>"DYING FOR NOTHING — Why Men Were Ordered to Attack After the Armistice Was Signed."</em> You document the attacks launched on the morning of November 11, after the armistice was already agreed. The 11,000 casualties on the last day. The men killed at 10:50 a.m., ten minutes before silence fell.</p>
+      <p>An American major who lost three men in the final hour tells you: <em>"I received orders to attack at 9 a.m. I knew the armistice was signed. I asked for confirmation. The order stood. Three of my boys are dead for a position we abandoned the next morning."</em> The question of who bears responsibility for the last day's dead will haunt military historians for a century.</p>`,
+      next: "scene10"
+    }
+  ]
+},
+
+// ------ SCENE 10: THE ARMISTICE AND AFTERMATH ------
+scene10: {
+  location: "Compi\u00e8gne, France",
+  date: "November 11, 1918",
+  stop: "compiegne",
+  title: "The Eleventh Hour",
+  auto_next: "epilogue",
+  narrative: `
+    <p>At 11:00 a.m. on November 11, 1918, the guns fall silent.</p>
+
+    <p>You are near the front lines when it happens. The barrage stops. The machine guns stop. For the first time in four years, there is <em>silence</em> on the Western Front. Men who have lived with the constant sound of shellfire cannot believe it. Some weep. Some cheer. Many simply stand in their trenches and stare at the sky, unable to comprehend that they have survived.</p>
+
+    <p>A British officer near you takes out his watch, confirms it is past eleven, and says quietly: <strong>"Well, I suppose that's that, then."</strong> He walks to the back of the trench and sits down. He does not celebrate. He thinks of the friends who are not here to see this moment.</p>
+
+    <p>In the hours after the armistice, a strange thing happens along parts of the front. German and Allied soldiers climb out of their trenches and walk into No Man's Land. They meet in the middle. They share cigarettes. They shake hands. Some show each other photographs of their families. They do not look like enemies. They look like survivors.</p>
+
+    <div class="historical-note">
+      <strong>Historical context:</strong> The armistice was signed at 5:00 a.m. on November 11, 1918, in a railway carriage in the Forest of Compiègne. The terms were harsh — Germany was required to withdraw from all occupied territory, surrender enormous quantities of weapons and equipment, and accept Allied occupation of the Rhineland. But it was not a peace treaty. That would come later, at Versailles, where the terms would be far harsher still — and would plant the seeds of the next war.
+      <p style="margin-top:0.75rem;">The same railway carriage would be used again in June 1940, when Adolf Hitler forced France to sign its surrender in the same location — a deliberate act of symbolic revenge for what many Germans regarded as a humiliating and unjust peace.</p>
+    </div>
+  `
+},
+
+// ------ EPILOGUE ------
+epilogue: {
+  location: null,
+  date: null,
+  stop: null,
+  title: "The War to End All Wars",
+  narrative: `
+    <div class="epilogue-section">
+      <h3>The Silence</h3>
+      <p>At 11:00 a.m. on November 11, 1918, the most destructive conflict the world had ever seen came to an end. Four years, three months, and fourteen days after the assassination in Sarajevo, the guns on the Western Front fell silent. The war that was supposed to be "over by Christmas" had consumed a generation.</p>
+    </div>
+
+    <div class="epilogue-section">
+      <h3>The Cost</h3>
+      <ul>
+        <li><strong>Approximately 10 million soldiers killed.</strong> Another 21 million wounded. An estimated 8 million taken prisoner or missing.</li>
+        <li><strong>An estimated 6\u20137 million civilians killed</strong> — from military action, famine, disease, and genocide (including the Armenian Genocide of 1915\u201316).</li>
+        <li><strong>Four empires destroyed:</strong> the German, Austro-Hungarian, Ottoman, and Russian empires all collapsed, redrawing the map of Europe and the Middle East.</li>
+        <li><strong>The Spanish Flu (1918\u201319):</strong> The pandemic, spread in part by troop movements, killed an estimated 50\u2013100 million people worldwide — far more than the war itself.</li>
+        <li><strong>Unexploded ordnance:</strong> Over 100 years later, hundreds of tons of shells, grenades, and chemical weapons are recovered from the former Western Front every year. French and Belgian farmers still call the annual harvest of rusted shells the <em>"iron harvest."</em></li>
+      </ul>
+    </div>
+
+    <div class="epilogue-section">
+      <h3>The Legacy</h3>
+      <ul>
+        <li><strong>The Treaty of Versailles (1919):</strong> The peace settlement forced Germany to accept sole responsibility for the war (the "War Guilt Clause"), pay enormous reparations, surrender territory, and limit its military. Many historians regard the treaty's harshness as a direct cause of German resentment that fueled the rise of Adolf Hitler and the Nazi Party.</li>
+        <li><strong>The League of Nations:</strong> Woodrow Wilson's vision of a collective security organization was established but fatally weakened when the U.S. Senate refused to ratify American membership. Without the United States, the League could not prevent the aggression that led to World War II.</li>
+        <li><strong>The Lost Generation:</strong> The war killed or maimed a significant proportion of the young men of Britain, France, and Germany. The survivors — physically and psychologically scarred — became known as the "Lost Generation." Their disillusionment shaped the literature, art, and politics of the 1920s and 1930s.</li>
+        <li><strong>The Middle East:</strong> The collapse of the Ottoman Empire and the post-war settlements — including the Sykes-Picot Agreement, the Balfour Declaration, and the mandate system — created borders, conflicts, and resentments that continue to shape the Middle East today.</li>
+        <li><strong>The Russian Revolution:</strong> The war's devastation helped trigger the 1917 Russian Revolution, which created the Soviet Union and set the stage for the Cold War that dominated the second half of the 20th century.</li>
+      </ul>
+    </div>
+
+    <div class="epilogue-section">
+      <h3>The Poets</h3>
+      <p>World War I produced some of the most powerful anti-war literature ever written. Soldier-poets like <strong>Wilfred Owen</strong>, <strong>Siegfried Sassoon</strong>, <strong>Isaac Rosenberg</strong>, and <strong>Rupert Brooke</strong> wrote about the reality of the trenches with a clarity and honesty that official accounts never matched. Owen, perhaps the greatest of them, was killed on November 4, 1918 — one week before the armistice. His mother received the telegram announcing his death on November 11, as the church bells were ringing to celebrate the peace.</p>
+      <div class="poetry-block" style="margin-top:1rem;">
+        If in some smothering dreams you too could pace<br>
+        Behind the wagon that we flung him in,<br>
+        And watch the white eyes writhing in his face,<br>
+        His hanging face, like a devil's sick of sin;<br>
+        If you could hear, at every jolt, the blood<br>
+        Come gargling from the froth-corrupted lungs,<br>
+        Obscene as cancer, bitter as the cud<br>
+        Of vile, incurable sores on innocent tongues, \u2014<br>
+        My friend, you would not tell with such high zest<br>
+        To children ardent for some desperate glory,<br>
+        The old Lie: <em>Dulce et decorum est<br>
+        Pro patria mori.</em>
+        <div class="poetry-attribution">— Wilfred Owen, "Dulce et Decorum Est" (1917)<br><span style="font-size:0.8rem;color:#888;">["It is sweet and fitting to die for one's country."]</span></div>
+      </div>
+    </div>
+
+    <div class="epilogue-section">
+      <h3>Remembrance</h3>
+      <p>Every year on November 11, Britain and Commonwealth nations observe a two-minute silence at 11:00 a.m. In France, the flame at the Tomb of the Unknown Soldier beneath the Arc de Triomphe is rekindled. In Belgium, buglers play the Last Post every evening at the Menin Gate in Ypres — a ceremony that has been performed every night since 1928, interrupted only by the German occupation of 1940\u201344.</p>
+      <p>The names of 54,395 soldiers whose bodies were never found are inscribed on the Menin Gate. When the gate proved too small to hold all the names, the remainder were inscribed on the walls of <strong>Tyne Cot Cemetery</strong> nearby — the largest Commonwealth war cemetery in the world, with 11,961 graves.</p>
+      <p>The inscription on the Menin Gate reads: <strong><em>"Here are recorded names of officers and men who fell in Ypres Salient but to whom the fortune of war denied the known and honoured burial given to their comrades in death."</em></strong></p>
+    </div>
+
+    <div class="epilogue-section">
+      <h3>The Question</h3>
+      <p>The war that was supposed to end all wars didn't end anything. Twenty-one years later, an even deadlier conflict began — one directly caused by the failures of the peace that followed the first. The Great War killed ten million soldiers and left a continent in ruins, and the question it asks every generation is: <strong><em>Was it worth it? Could it have been prevented? And what do we owe the millions who died in the mud of Flanders and the chalk of the Somme for a few miles of ground that no one can remember the purpose of?</em></strong></p>
+    </div>
+  `,
+  prompt: null,
+  choices: [],
+  isEpilogue: true
+}
+
+};
+
+// ============================================================
+// GAME ENGINE
+// ============================================================
+function startGame() {
+  document.getElementById('title-screen').style.display = 'none';
+  document.getElementById('map-panel').classList.add('active');
+  document.getElementById('game-container').classList.add('active');
+  document.getElementById('mapbox-container').offsetHeight;
+  initMapbox();
+  renderScene('scene1');
+}
+
+function renderScene(sceneId) {
+  if (state.sceneHistory[state.sceneHistory.length - 1] !== sceneId) {
+    state.sceneHistory.push(sceneId);
+  }
+  state.currentScene = sceneId;
+  const scene = scenes[sceneId];
+  const container = document.getElementById('game-container');
+
+  if (scene.stop) {
+    updateRouteMap(scene.stop, scene.location, scene.date);
+  }
+  updateCasualtyCounter(sceneId);
+
+  // Stop Apple Music after Scene 1
+  if (sceneId === 'scene2') {
+    const ap = document.getElementById('apple-music-player');
+    if (ap) ap.src = 'about:blank';
+  }
+
+  let html = '<div class="fade-in">';
+
+  if (scene.isEpilogue) {
+    state.reachedEpilogue = true;
+  }
+
+  // Navigation buttons
+  if (sceneId !== 'scene1') {
+    html += `<div class="nav-buttons">`;
+    html += `<button class="back-btn" onclick="goBack()">&larr; Back</button>`;
+    if (state.reachedEpilogue && state.forwardHistory.length > 0) {
+      html += `<button class="back-btn forward-btn" onclick="goForward()">Forward &rarr;</button>`;
+    }
+    html += `</div>`;
+  }
+
+  if (scene.location) {
+    html += `<div class="scene-location">${scene.location}</div>`;
+  }
+  if (scene.date) {
+    html += `<div class="scene-date">${scene.date}</div>`;
+  }
+  if (scene.title) {
+    html += `<div class="scene-title">${scene.title}</div>`;
+  }
+
+  html += `<div class="scene-narrative">${scene.narrative}</div>`;
+
+  if (scene.choices && scene.choices.length > 0) {
+    if (scene.prompt) {
+      html += `<div class="choice-prompt">${scene.prompt}</div>`;
+    }
+    html += '<div class="choices">';
+    scene.choices.forEach((choice, i) => {
+      html += `<button class="choice-btn" onclick="makeChoice('${sceneId}', ${i})">
+        <span class="choice-label">${choice.label}.</span> ${choice.text}
+      </button>`;
+    });
+    html += '</div>';
+  } else if (scene.auto_next) {
+    html += `<button class="continue-btn" onclick="renderScene('${scene.auto_next}')">Continue</button>`;
+  } else if (scene.isEpilogue) {
+    html += `
+    <div class="reflection-section">
+      <h2>Correspondent's Debrief</h2>
+      <p class="reflection-intro">Answer the following questions thoughtfully and in complete sentences. When you are finished, enter your name and click "Save as PDF" to download your response for submission.</p>
+
+      <div class="name-field">
+        <label for="student-name">Your Name</label>
+        <input type="text" id="student-name" placeholder="First and Last Name">
+      </div>
+
+      <div class="reflection-field">
+        <label>1. The assassination of one man — Archduke Franz Ferdinand — led to a war that killed 10 million soldiers and reshaped the entire world. How did the alliance system and the failure of diplomacy turn a regional crisis into a global catastrophe? What lessons does the July Crisis of 1914 hold for how nations should handle international disputes today?</label>
+        <textarea id="reflection-1" placeholder="Write your response here..."></textarea>
+      </div>
+
+      <div class="reflection-field">
+        <label>2. Battles like Verdun and the Somme consumed hundreds of thousands of lives for a few miles of ground. Generals like Haig continued to order frontal assaults despite enormous casualties. Were these battles necessary acts of attrition, or were they failures of leadership and imagination? What obligations do military leaders have to the soldiers they command?</label>
+        <textarea id="reflection-2" placeholder="Write your response here..."></textarea>
+      </div>
+
+      <div class="reflection-field">
+        <label>3. World War I introduced poison gas, massive artillery bombardment, and machine gun warfare on an industrial scale. It also produced the concept of "shell shock" (PTSD). How did the technology of the Great War change the nature of warfare and the human experience of combat? How do the war poets — Owen, Sassoon, and others — help us understand what official reports cannot?</label>
+        <textarea id="reflection-3" placeholder="Write your response here..."></textarea>
+      </div>
+
+      <div class="reflection-field">
+        <label>4. The Treaty of Versailles was supposed to create a lasting peace. Instead, many historians argue it planted the seeds of World War II. What went wrong with the peace? Could the victors have created a more just settlement, or was a harsh peace inevitable after four years of devastating war? What does this tell us about the relationship between how wars end and whether peace lasts?</label>
+        <textarea id="reflection-4" placeholder="Write your response here..."></textarea>
+      </div>
+
+      <div class="reflection-actions">
+        <button class="save-pdf-btn" onclick="savePDF()">Save as PDF</button>
+        <button class="restart-btn" onclick="restartGame()">Start Over</button>
+      </div>
+      <p class="pdf-note">Your PDF will include your name, your responses, and the reporting choices you made during the simulation.</p>
+    </div>`;
+  }
+
+  html += '</div>';
+  container.innerHTML = html;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function makeChoice(sceneId, choiceIndex) {
+  const scene = scenes[sceneId];
+  const choice = scene.choices[choiceIndex];
+
+  state.decisions.push({ scene: sceneId, choice: choice.label });
+
+  if (choice.effect) choice.effect();
+
+  applyChoice(choice);
+}
+
+function applyChoice(choice) {
+  const container = document.getElementById('game-container');
+  const choicesEl = container.querySelector('.choices');
+  if (choicesEl) {
+    let consequenceHtml = `<div class="consequence fade-in">${choice.consequence}</div>`;
+    consequenceHtml += `<button class="continue-btn fade-in" onclick="renderScene('${choice.next}')">Continue</button>`;
+    choicesEl.outerHTML = consequenceHtml;
+
+    const promptEl = container.querySelector('.choice-prompt');
+    if (promptEl) promptEl.style.display = 'none';
+  }
+}
+
+function goBack() {
+  if (state.sceneHistory.length > 1) {
+    const currentScene = state.sceneHistory.pop();
+    state.forwardHistory.push(currentScene);
+    const prevScene = state.sceneHistory[state.sceneHistory.length - 1];
+    renderScene(prevScene);
+  }
+}
+
+function goForward() {
+  if (state.forwardHistory.length > 0) {
+    const nextScene = state.forwardHistory.pop();
+    state.sceneHistory.push(nextScene);
+    renderScene(nextScene);
+  }
+}
+
+function restartGame() {
+  state.currentScene = null;
+  state.decisions = [];
+  state.visitedStops = [];
+  state.sceneHistory = [];
+  state.forwardHistory = [];
+  state.reachedEpilogue = false;
+  state.report = null;
+
+  document.getElementById('map-panel').classList.remove('active');
+  document.getElementById('game-container').classList.remove('active');
+  document.getElementById('game-container').innerHTML = '';
+  document.getElementById('casualty-counter').classList.remove('active');
+  const ap = document.getElementById('apple-music-player');
+  if (ap) ap.src = 'https://embed.music.apple.com/us/album/keep-the-home-fires-burning-till-the-boys-come-home/1452702825?i=1452702833';
+  document.getElementById('title-screen').style.display = 'flex';
+
+  Object.values(mapboxMarkers).forEach(({ element }) => {
+    element.classList.remove('visited', 'current');
+  });
+  Object.values(mapboxDangerMarkers).forEach(({ element }) => {
+    element.classList.remove('visible');
+  });
+  if (mapboxMap && mapboxMap.getSource('western-front')) {
+    mapboxMap.getSource('western-front').setData({
+      type: 'Feature',
+      geometry: { type: 'LineString', coordinates: [] }
+    });
+  }
+  document.getElementById('callout-location').textContent = '';
+  document.getElementById('callout-date').textContent = '';
+  if (mapboxMap) {
+    mapboxMap.flyTo({ center: [4.0, 49.0], zoom: 5, speed: 1.5 });
+  }
+
+  window.scrollTo({ top: 0 });
+}
+
+// ============================================================
+// PDF GENERATION
+// ============================================================
+function savePDF() {
+  const name = document.getElementById('student-name').value.trim();
+  const r1 = document.getElementById('reflection-1').value.trim();
+  const r2 = document.getElementById('reflection-2').value.trim();
+  const r3 = document.getElementById('reflection-3').value.trim();
+  const r4 = document.getElementById('reflection-4').value.trim();
+
+  if (!name) {
+    alert('Please enter your name before saving.');
+    document.getElementById('student-name').focus();
+    return;
+  }
+
+  if (!r1 || !r2 || !r3 || !r4) {
+    alert('Please answer all four reflection questions before saving.');
+    return;
+  }
+
+  const choiceLabels = {
+    scene1: 'Scene 1 \u2014 The Assassination',
+    scene2: 'Scene 2 \u2014 Belgium',
+    scene3: 'Scene 3 \u2014 The Marne',
+    scene4: 'Scene 4 \u2014 Ypres / Poison Gas',
+    scene5: 'Scene 5 \u2014 Verdun',
+    scene6: 'Scene 6 \u2014 The Somme',
+    scene7: 'Scene 7 \u2014 America Enters',
+    scene8: 'Scene 8 \u2014 Passchendaele',
+    scene9: 'Scene 9 \u2014 The Hundred Days'
+  };
+
+  let choicesHtml = '';
+  state.decisions.forEach(d => {
+    const label = choiceLabels[d.scene] || d.scene;
+    choicesHtml += `<tr><td style="padding:4px 12px 4px 0;font-weight:600;white-space:nowrap">${label}</td><td style="padding:4px 0">Choice ${d.choice}</td></tr>`;
+  });
+
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(`
+<!DOCTYPE html>
+<html>
+<head>
+<title>The Great War Correspondent Debrief \u2014 ${name}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Source Sans Pro', Arial, sans-serif;
+    color: #1a1a1a;
+    padding: 0.5in 0.75in;
+    line-height: 1.6;
+    font-size: 11pt;
+  }
+  .header {
+    text-align: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #6b3a2a;
+  }
+  .header h1 {
+    font-size: 20pt;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #6b3a2a;
+    margin-bottom: 2px;
+  }
+  .header .sub {
+    font-size: 10pt;
+    color: #1a2a4a;
+    font-weight: 600;
+  }
+  .meta {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    font-size: 10pt;
+  }
+  .meta-label { font-weight: 700; color: #1a2a4a; }
+  h2 {
+    font-size: 13pt;
+    color: #1a2a4a;
+    margin: 20px 0 10px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #ddd;
+  }
+  .question { margin-bottom: 18px; }
+  .question .q-label { font-weight: 700; font-size: 10pt; color: #1a2a4a; margin-bottom: 4px; }
+  .question .q-text { font-size: 10pt; margin-bottom: 6px; color: #444; font-style: italic; }
+  .question .answer { font-size: 11pt; line-height: 1.7; padding: 8px 0; white-space: pre-wrap; }
+  table { font-size: 10pt; border-collapse: collapse; }
+  .footer {
+    margin-top: 30px;
+    padding-top: 12px;
+    border-top: 1px solid #ddd;
+    font-size: 8pt;
+    color: #999;
+    text-align: center;
+  }
+  @media print { body { padding: 0; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>The Great War: 1914\u20131918</h1>
+  <div class="sub">Correspondent's Debrief</div>
+</div>
+<div class="meta">
+  <div><span class="meta-label">Student:</span> ${name}</div>
+  <div><span class="meta-label">Date:</span> ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+</div>
+<h2>Reporting Choices</h2>
+<table>${choicesHtml}</table>
+
+<h2>Reflection Questions</h2>
+<div class="question">
+  <div class="q-label">Question 1</div>
+  <div class="q-text">How did the alliance system turn a regional crisis into a global catastrophe? What lessons does the July Crisis hold for today?</div>
+  <div class="answer">${r1}</div>
+</div>
+<div class="question">
+  <div class="q-label">Question 2</div>
+  <div class="q-text">Were battles like Verdun and the Somme necessary acts of attrition or failures of leadership? What obligations do military leaders have to their soldiers?</div>
+  <div class="answer">${r2}</div>
+</div>
+<div class="question">
+  <div class="q-label">Question 3</div>
+  <div class="q-text">How did WWI technology change warfare and the human experience of combat? How do the war poets help us understand what official reports cannot?</div>
+  <div class="answer">${r3}</div>
+</div>
+<div class="question">
+  <div class="q-label">Question 4</div>
+  <div class="q-text">What went wrong with the Treaty of Versailles? Could the victors have created a more just peace? What does this tell us about how wars should end?</div>
+  <div class="answer">${r4}</div>
+</div>
+<div class="footer">
+  The Great War: 1914\u20131918 \u2014 Historical Simulation for 9th Grade World History
+</div>
+</body>
+</html>`);
+
+  printWindow.document.close();
+  setTimeout(() => { printWindow.print(); }, 600);
+}
+</script>
+
+</body>
+</html>
