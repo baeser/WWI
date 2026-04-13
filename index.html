@@ -1456,6 +1456,8 @@ scene4: {
       As under a green sea, I saw him drowning.<br>
       <div class="poetry-attribution">— Wilfred Owen, "Dulce et Decorum Est" (1917)</div>
     </div>
+
+    <p style="margin-top:0.5rem;"><a class="evidence-link" onclick="openOwenModal()">&#x1F4C4; Read the Full Poem: Wilfred Owen — "Dulce et Decorum Est"</a><br><span style="font-size: 0.85rem; color: #999;">Poetry Foundation — The complete text of Owen's searing indictment of the "old Lie" that it is sweet and fitting to die for one's country.</span></p>
   `,
   prompt: "The gas attack has opened a new chapter in the horror of this war. How do you report it?",
   choices: [
@@ -1596,6 +1598,10 @@ scene7: {
       <p style="margin-top:0.75rem;">Wilson's idealism — his vision of a post-war world based on democracy, self-determination, and collective security — would culminate in his <strong>Fourteen Points</strong> and his campaign for the League of Nations. But the Senate would reject the League, and Wilson's dream of a new world order would collapse. The failure to build a lasting peace after World War I is one of the great tragedies of the 20th century.</p>
     </div>
 
+    <p style="margin-top:0.5rem;"><a class="evidence-link" onclick="openZimmermannModal()">&#x1F4C4; View Primary Source: The Zimmermann Telegram (1917)</a><br><span style="font-size: 0.85rem; color: #999;">National Archives — The intercepted German diplomatic cable that helped bring America into the war.</span></p>
+
+    <p style="margin-top:0.5rem;"><a class="evidence-link" onclick="openWilsonModal()">&#x1F4C4; View Primary Source: Wilson's Address to Congress — Declaration of War (1917)</a><br><span style="font-size: 0.85rem; color: #999;">National Archives — President Wilson's speech asking Congress to declare war on Germany: "The world must be made safe for democracy."</span></p>
+
     <p>You have been sent to Washington to cover America's entry. The mood is a mixture of idealism and naivety. American volunteers are enthusiastic but have no idea what awaits them in France. A young American officer, just commissioned, asks you earnestly: <strong>"What's it really like over there?"</strong></p>
 
     <p>You think of Verdun. You think of the Somme. You think of the gas at Ypres. You are not sure how to answer.</p>
@@ -1650,6 +1656,8 @@ scene8: {
       Into the bottomless mud, and lost the light.
       <div class="poetry-attribution">— Siegfried Sassoon, "Memorial Tablet" (1918)</div>
     </div>
+
+    <p style="margin-top:0.5rem;"><a class="evidence-link" onclick="openSassoonModal()">&#x1F4C4; Read Primary Source: Siegfried Sassoon — "Finished with the War: A Soldier's Declaration" (1917)</a><br><span style="font-size: 0.85rem; color: #999;">Sassoon's public statement of defiance against the war, read aloud in the House of Commons. A decorated combat officer risked court-martial to say the war was being "deliberately prolonged by those who have the power to end it."</span></p>
   `,
   prompt: "Passchendaele is the nadir of the war. What story do you tell?",
   choices: [
@@ -1734,6 +1742,7 @@ scene10: {
     <div class="historical-note">
       <strong>Historical context:</strong> The armistice was signed at 5:00 a.m. on November 11, 1918, in a railway carriage in the Forest of Compiègne. The terms were harsh — Germany was required to withdraw from all occupied territory, surrender enormous quantities of weapons and equipment, and accept Allied occupation of the Rhineland. But it was not a peace treaty. That would come later, at Versailles, where the terms would be far harsher still — and would plant the seeds of the next war.
       <p style="margin-top:0.75rem;">The same railway carriage would be used again in June 1940, when Adolf Hitler forced France to sign its surrender in the same location — a deliberate act of symbolic revenge for what many Germans regarded as a humiliating and unjust peace.</p>
+      <p style="margin-top:0.75rem;"><a class="evidence-link" onclick="openArmisticeModal()">&#x1F4C4; View Primary Source: The Armistice Agreement (November 11, 1918)</a><br><span style="font-size: 0.85rem; color: #999;">U.S. Government Publishing Office — The full text of the armistice terms that ended the fighting on the Western Front.</span></p>
     </div>
   `
 },
@@ -1766,6 +1775,7 @@ epilogue: {
       <ul>
         <li><strong>The Treaty of Versailles (1919):</strong> The peace settlement forced Germany to accept sole responsibility for the war (the "War Guilt Clause"), pay enormous reparations, surrender territory, and limit its military. Many historians regard the treaty's harshness as a direct cause of German resentment that fueled the rise of Adolf Hitler and the Nazi Party.</li>
         <li><strong>The League of Nations:</strong> Woodrow Wilson's vision of a collective security organization was established but fatally weakened when the U.S. Senate refused to ratify American membership. Without the United States, the League could not prevent the aggression that led to World War II.</li>
+        <li style="margin-bottom:0.2rem;"><strong>Article 231 — The War Guilt Clause:</strong> <a class="evidence-link" onclick="openWarGuiltModal()">&#x1F4C4; Read Article 231</a> — The single most consequential sentence of the treaty, which forced Germany to accept sole responsibility for the war.</li>
         <li><strong>The Lost Generation:</strong> The war killed or maimed a significant proportion of the young men of Britain, France, and Germany. The survivors — physically and psychologically scarred — became known as the "Lost Generation." Their disillusionment shaped the literature, art, and politics of the 1920s and 1930s.</li>
         <li><strong>The Middle East:</strong> The collapse of the Ottoman Empire and the post-war settlements — including the Sykes-Picot Agreement, the Balfour Declaration, and the mandate system — created borders, conflicts, and resentments that continue to shape the Middle East today.</li>
         <li><strong>The Russian Revolution:</strong> The war's devastation helped trigger the 1917 Russian Revolution, which created the Soviet Union and set the stage for the Cold War that dominated the second half of the 20th century.</li>
@@ -2151,7 +2161,131 @@ function savePDF() {
   printWindow.document.close();
   setTimeout(() => { printWindow.print(); }, 600);
 }
+
+// ============================================================
+// EVIDENCE MODAL FUNCTIONS
+// ============================================================
+function openOwenModal() {
+  document.getElementById('owen-overlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+function closeOwenModal() {
+  document.getElementById('owen-overlay').classList.remove('active');
+  document.body.style.overflow = '';
+}
+function openZimmermannModal() {
+  document.getElementById('zimmermann-overlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+function closeZimmermannModal() {
+  document.getElementById('zimmermann-overlay').classList.remove('active');
+  document.body.style.overflow = '';
+}
+function openWilsonModal() {
+  document.getElementById('wilson-overlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+function closeWilsonModal() {
+  document.getElementById('wilson-overlay').classList.remove('active');
+  document.body.style.overflow = '';
+}
+function openSassoonModal() {
+  document.getElementById('sassoon-overlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+function closeSassoonModal() {
+  document.getElementById('sassoon-overlay').classList.remove('active');
+  document.body.style.overflow = '';
+}
+function openArmisticeModal() {
+  document.getElementById('armistice-overlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+function closeArmisticeModal() {
+  document.getElementById('armistice-overlay').classList.remove('active');
+  document.body.style.overflow = '';
+}
+function openWarGuiltModal() {
+  document.getElementById('warguilt-overlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+function closeWarGuiltModal() {
+  document.getElementById('warguilt-overlay').classList.remove('active');
+  document.body.style.overflow = '';
+}
 </script>
+
+<!-- Wilfred Owen "Dulce et Decorum Est" Modal -->
+<div class="evidence-overlay" id="owen-overlay" onclick="if(event.target===this)closeOwenModal()">
+  <div class="evidence-modal">
+    <h2>Primary Source</h2>
+    <p class="evidence-subtitle">Wilfred Owen — "Dulce et Decorum Est" (1917)</p>
+    <p style="font-size:0.95rem;line-height:1.6;margin-bottom:1rem;">Written in 1917 while Owen was recovering from shell shock at Craiglockhart War Hospital in Edinburgh, where he met Siegfried Sassoon. The poem describes a gas attack on the Western Front with devastating clarity. Its title is taken from the Roman poet Horace: <em>"Dulce et decorum est pro patria mori"</em> — "It is sweet and fitting to die for one's country." Owen calls this "the old Lie." He was killed on November 4, 1918, one week before the armistice. He was 25 years old.</p>
+    <iframe class="pdf-frame" src="https://www.poetryfoundation.org/poems/46560/dulce-et-decorum-est"></iframe>
+    <p class="pdf-note">Source: Poetry Foundation. If the page does not load, <a href="https://www.poetryfoundation.org/poems/46560/dulce-et-decorum-est" target="_blank" rel="noopener" style="color:var(--accent);">click here to open it directly</a>.</p>
+    <button class="evidence-close-btn" onclick="closeOwenModal()">Close</button>
+  </div>
+</div>
+
+<!-- Zimmermann Telegram Modal -->
+<div class="evidence-overlay" id="zimmermann-overlay" onclick="if(event.target===this)closeZimmermannModal()">
+  <div class="evidence-modal">
+    <h2>Primary Source Document</h2>
+    <p class="evidence-subtitle">The Zimmermann Telegram — January 1917</p>
+    <p style="font-size:0.95rem;line-height:1.6;margin-bottom:1rem;">In January 1917, German Foreign Secretary Arthur Zimmermann sent a coded telegram to the German ambassador in Mexico proposing a military alliance against the United States. In exchange for Mexican support, Germany promised to help Mexico recover the territories of Texas, New Mexico, and Arizona — lost in the Mexican-American War of 1848. British intelligence intercepted and decoded the telegram using codebreaking capabilities developed at Room 40 of the Admiralty. When the telegram was made public on March 1, 1917, it caused an explosion of outrage in the United States and was a major factor in America's decision to enter the war five weeks later.</p>
+    <iframe class="pdf-frame" src="https://www.archives.gov/milestone-documents/zimmermann-telegram"></iframe>
+    <p class="pdf-note">Source: National Archives, Milestone Documents. If the page does not load, <a href="https://www.archives.gov/milestone-documents/zimmermann-telegram" target="_blank" rel="noopener" style="color:var(--accent);">click here to open it directly</a>.</p>
+    <button class="evidence-close-btn" onclick="closeZimmermannModal()">Close</button>
+  </div>
+</div>
+
+<!-- Wilson War Address Modal -->
+<div class="evidence-overlay" id="wilson-overlay" onclick="if(event.target===this)closeWilsonModal()">
+  <div class="evidence-modal">
+    <h2>Primary Source Document</h2>
+    <p class="evidence-subtitle">President Woodrow Wilson — Address to Congress Requesting a Declaration of War (April 2, 1917)</p>
+    <p style="font-size:0.95rem;line-height:1.6;margin-bottom:1rem;">On April 2, 1917, President Woodrow Wilson stood before a joint session of Congress and asked for a declaration of war against Germany. Wilson had won re-election just five months earlier on the slogan "He kept us out of war." But Germany's resumption of unrestricted submarine warfare and the Zimmermann Telegram had made neutrality untenable. Wilson framed America's entry not as a war of conquest but as a crusade for democracy: <strong>"The world must be made safe for democracy. Its peace must be planted upon the tested foundations of political liberty."</strong> Congress voted to declare war four days later. Over two million American soldiers would eventually serve in France.</p>
+    <iframe class="pdf-frame" src="https://www.archives.gov/milestone-documents/address-to-congress-declaration-of-war-against-germany"></iframe>
+    <p class="pdf-note">Source: National Archives, Milestone Documents. If the page does not load, <a href="https://www.archives.gov/milestone-documents/address-to-congress-declaration-of-war-against-germany" target="_blank" rel="noopener" style="color:var(--accent);">click here to open it directly</a>.</p>
+    <button class="evidence-close-btn" onclick="closeWilsonModal()">Close</button>
+  </div>
+</div>
+
+<!-- Sassoon Statement of Defiance Modal -->
+<div class="evidence-overlay" id="sassoon-overlay" onclick="if(event.target===this)closeSassoonModal()">
+  <div class="evidence-modal">
+    <h2>Primary Source Document</h2>
+    <p class="evidence-subtitle">Siegfried Sassoon — "Finished with the War: A Soldier's Declaration" (July 1917)</p>
+    <p style="font-size:0.95rem;line-height:1.6;margin-bottom:1rem;">In July 1917, Second Lieutenant Siegfried Sassoon — a decorated combat officer who had earned the Military Cross and been recommended for the Victoria Cross — sent a letter to his commanding officer declaring that he was "finished with the War." The statement was read aloud in the House of Commons by a sympathetic MP. Sassoon accused the military and political leadership of prolonging the war through "deliberate cruelty and incompetence," and said that the war was "being deliberately prolonged by those who have the power to end it." The Army, unwilling to court-martial a war hero, sent him to Craiglockhart War Hospital for treatment of "shell shock" — where he met and mentored a young poet named Wilfred Owen.</p>
+    <iframe class="pdf-frame" src="https://voxpopulisphere.com/2014/12/21/seigfried-sassoon-public-statement-of-defiance/"></iframe>
+    <p class="pdf-note">Source: Vox Populi. If the page does not load, <a href="https://voxpopulisphere.com/2014/12/21/seigfried-sassoon-public-statement-of-defiance/" target="_blank" rel="noopener" style="color:var(--accent);">click here to open it directly</a>.</p>
+    <button class="evidence-close-btn" onclick="closeSassoonModal()">Close</button>
+  </div>
+</div>
+
+<!-- Armistice Terms Modal -->
+<div class="evidence-overlay" id="armistice-overlay" onclick="if(event.target===this)closeArmisticeModal()">
+  <div class="evidence-modal">
+    <h2>Primary Source Document</h2>
+    <p class="evidence-subtitle">The Armistice Agreement — November 11, 1918</p>
+    <p style="font-size:0.95rem;line-height:1.6;margin-bottom:1rem;">The armistice was signed at 5:00 a.m. on November 11, 1918, in the railway carriage of Supreme Allied Commander Ferdinand Foch in the Forest of Compi&egrave;gne. The terms required Germany to immediately evacuate all occupied territory (including Alsace-Lorraine), withdraw its forces behind the Rhine, surrender enormous quantities of artillery, machine guns, aircraft, locomotives, and railway cars, and release all Allied prisoners of war. The naval terms required the surrender of the German submarine fleet and the internment of the High Seas Fleet. The armistice was initially set for 36 days and was renewed multiple times until the Treaty of Versailles was signed on June 28, 1919.</p>
+    <iframe class="pdf-frame" src="https://www.govinfo.gov/content/pkg/SERIALSET-07610_00_00-035-0147-0000/pdf/SERIALSET-07610_00_00-035-0147-0000.pdf"></iframe>
+    <p class="pdf-note">Source: U.S. Government Publishing Office. If the document does not load, <a href="https://www.govinfo.gov/content/pkg/SERIALSET-07610_00_00-035-0147-0000/pdf/SERIALSET-07610_00_00-035-0147-0000.pdf" target="_blank" rel="noopener" style="color:var(--accent);">click here to open it directly</a>.</p>
+    <button class="evidence-close-btn" onclick="closeArmisticeModal()">Close</button>
+  </div>
+</div>
+
+<!-- Article 231 War Guilt Clause Modal -->
+<div class="evidence-overlay" id="warguilt-overlay" onclick="if(event.target===this)closeWarGuiltModal()">
+  <div class="evidence-modal">
+    <h2>Primary Source Document</h2>
+    <p class="evidence-subtitle">Article 231 of the Treaty of Versailles — The "War Guilt Clause" (June 28, 1919)</p>
+    <p style="font-size:0.95rem;line-height:1.6;margin-bottom:1rem;">Article 231 of the Treaty of Versailles forced Germany to accept sole responsibility for causing the war: <strong>"The Allied and Associated Governments affirm and Germany accepts the responsibility of Germany and her allies for causing all the loss and damage to which the Allied and Associated Governments and their nationals have been subjected as a consequence of the war imposed upon them by the aggression of Germany and her allies."</strong> This clause — known as the "War Guilt Clause" — became the legal basis for demanding reparations from Germany and was one of the most bitterly resented provisions of the treaty. Germans across the political spectrum rejected the idea that Germany bore sole responsibility for a war that all the great powers had helped to cause. The resentment fueled nationalist movements, including the Nazi Party, and Adolf Hitler made repudiation of Versailles a central promise of his political platform.</p>
+    <iframe class="pdf-frame" src="https://en.wikipedia.org/wiki/Article_231_of_the_Treaty_of_Versailles"></iframe>
+    <p class="pdf-note">Source: Wikipedia. If the page does not load, <a href="https://en.wikipedia.org/wiki/Article_231_of_the_Treaty_of_Versailles" target="_blank" rel="noopener" style="color:var(--accent);">click here to open it directly</a>.</p>
+    <button class="evidence-close-btn" onclick="closeWarGuiltModal()">Close</button>
+  </div>
+</div>
 
 </body>
 </html>
