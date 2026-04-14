@@ -1090,10 +1090,15 @@
     The people in this story were real. The battles happened. The mud, the wire, and the graves are still there.
   </div>
   <div class="title-music">
-    <iframe id="apple-music-player" allow="autoplay *; encrypted-media *;" frameborder="0" height="150" style="width:100%;max-width:660px;overflow:hidden;background:transparent;border-radius:10px;" sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation" src="https://embed.music.apple.com/us/album/keep-the-home-fires-burning-till-the-boys-come-home/1452702825?i=1452702833"></iframe>
+    <iframe id="apple-music-player" allow="autoplay *; encrypted-media *;" frameborder="0" height="150" style="width:100%;max-width:660px;overflow:hidden;background:transparent;border-radius:10px;" sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation" src="https://embed.music.apple.com/us/album/mars-the-bringer-of-war-the-planets-electric-recordings/898756432?i=898756501"></iframe>
   </div>
   <button class="btn-start" onclick="startGame()">Begin Assignment</button>
 </div>
+
+<!-- Nimrod audio for epilogue -->
+<audio id="nimrod-audio" preload="auto" loop>
+  <source src="&quot;Nimrod&quot; from Enigma Variations — Edward Elgar.mp3" type="audio/mpeg">
+</audio>
 
 <!-- ===== MAP PANEL ===== -->
 <div id="map-panel">
@@ -2065,6 +2070,13 @@ function renderScene(sceneId) {
 
   if (scene.isEpilogue) {
     state.reachedEpilogue = true;
+    // Play Nimrod (Elgar) for the epilogue
+    const nimrod = document.getElementById('nimrod-audio');
+    if (nimrod) { nimrod.volume = 0.5; nimrod.currentTime = 0; nimrod.play().catch(() => {}); }
+  } else {
+    // Stop Nimrod if navigating away from epilogue
+    const nimrod = document.getElementById('nimrod-audio');
+    if (nimrod) { nimrod.pause(); nimrod.currentTime = 0; }
   }
 
   // Navigation buttons
@@ -2339,8 +2351,10 @@ function restartGame() {
   document.getElementById('game-container').classList.remove('active');
   document.getElementById('game-container').innerHTML = '';
   document.getElementById('casualty-counter').classList.remove('active');
+  const nimrod = document.getElementById('nimrod-audio');
+  if (nimrod) { nimrod.pause(); nimrod.currentTime = 0; }
   const ap = document.getElementById('apple-music-player');
-  if (ap) ap.src = 'https://embed.music.apple.com/us/album/keep-the-home-fires-burning-till-the-boys-come-home/1452702825?i=1452702833';
+  if (ap) ap.src = 'https://embed.music.apple.com/us/album/mars-the-bringer-of-war-the-planets-electric-recordings/898756432?i=898756501';
   document.getElementById('title-screen').style.display = 'flex';
 
   Object.values(mapboxMarkers).forEach(({ element }) => {
